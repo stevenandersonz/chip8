@@ -39,7 +39,7 @@ func main () {
     var ram[3584] byte 
     m := InitMemory()
     m.LoadMemory(0x204, 0xF0)
-    fmt.Println(m.ReadFromMemory(0x204))
+    fmt.Println(m.ReadFromMemory(0x1))
     fonts := [512] uint8 {
 		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
         0x20, 0x60, 0x20, 0x20, 0x70, // 1

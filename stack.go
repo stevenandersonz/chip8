@@ -1,8 +1,8 @@
+package main
 
-func InitStack () [16] *uint16, uint16 {
+func InitStack () [16] *uint16 {
     var stack [16] *uint16
-    var stackPtr *uint16
-    return stack, stackPtr
+    return stack
 }
 
 

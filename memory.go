@@ -8,7 +8,7 @@ type  memory struct {
     reserved[512] byte
 }
 
-func (m *memory) LoadMemory (address uint16, value byte) bool {
+func (m *memory) LoadProgram (address uint16, value byte) bool {
     if address < start {
         m.reserved[address] = value
     } else {

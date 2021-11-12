@@ -29,10 +29,12 @@ func loadRom (path string){
     displayOP(rom, romSize)
 }
 func main () {
-    m := InitMemory()
-    m.LoadMemory(0x204, 0xF0)
-    fmt.Println(m.ReadFromMemory(0x1))
-    loadRom("./IBM_test.ch8")
+    cpu := NewProcessor()
+    program, programSize := loadRom("./IBM_test.ch8")
+    cpu.LoadProgram(program, programSize)
+    block := cpu.m.ReadFromMemory(0x0)
+    fmt.Println(block)
 }
+
 
 

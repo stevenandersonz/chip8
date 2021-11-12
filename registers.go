@@ -1,5 +1,7 @@
 package main
-import "time"
+import (
+    "time"
+)
 type registers struct {
     GP [16] byte
     I uint16
@@ -23,7 +25,15 @@ func (regs *registers) UpdateClockTimers () {
 
 func (regs *registers) RegisterClockLoop () {
     for {
-        r.UpdateClockTimers(regs)
-        time.sleep(time.Second/60)
+        regs.UpdateClockTimers()
+        time.Sleep(time.Second/60)
     }
+}
+
+func (regs *registers) GetPC () uint16 {
+    return regs.PC
+} 
+
+func (regs *registers) SetPC (address uint16) {
+    regs.PC = address
 }

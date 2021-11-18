@@ -29,7 +29,6 @@ func (p *cpu) FetchInstruction () uint16 {
 
 func (p *cpu) LoadProgram (program []byte, programSize uint16) {
     p.m.LoadProgram(program, programSize)
-    p.m.SetPC(0x198)
 }
 
 

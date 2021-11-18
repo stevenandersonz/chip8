@@ -2,7 +2,6 @@ package main
 
 import (
     "fmt"
-    "reflect"
     "encoding/hex"
     "os"
 )
@@ -29,11 +28,6 @@ func loadRom (path string){
     displayOP(rom, romSize)
 }
 func main () {
-    cpu := NewProcessor()
-    program, programSize := loadRom("./IBM_test.ch8")
-    cpu.LoadProgram(program, programSize)
-    block := cpu.m.ReadFromMemory(0x0)
-    fmt.Println(block)
 }
 
 

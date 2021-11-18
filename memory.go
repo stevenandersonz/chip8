@@ -1,32 +1,66 @@
 package main
 
 //big endian start a 512
-const start = 0x200 
+const ramStartAt  = 0x200 
 
 type  memory struct {
     ram[3584] byte
     reserved[512] byte
 }
-
-func (m *memory) LoadProgram (address uint16, value byte) bool {
-    if address < start {
-        m.reserved[address] = value
-    } else {
-        m.ram[address - start] = value
-    }
-    return true
+func calculateRAMOffset(address uint16) uint16 {
+    return address - ramStartAt
+}
+func isAddressReserved(address uint16) bool {
+    return address < ramStartAt
+}
+func (m *memory) LoadProgram (program []byte, programSize uint16) {
+    m.BlockWriteToMemory(ramStartAt, programSize, program)
 }
 
 func (m *memory) ReadFromMemory (address uint16) byte {
-    if address < start {
+    if isAddressReserved(address) {
         return m.reserved[address] 
     } else {
-        return m.ram[address - start]
+        return m.ram[address - ramStartAt]
     }
 }
+func (m *memory) WriteMemory(address uint16, value byte) bool {
+    if isAddressReserved(address){
+        return false
+    }
+    m.ram[calculateRAMOffset(address)]= value
+    return true
+}
+func (m *memory) BlockWriteToMemory(start uint16, stop uint16, data []byte) bool {
+    if start < 0x200 {
+        return false
+    }
+    dst := m.ram[calculateRAMOffset(start):calculateRAMOffset(stop)]
+    copy(dst, data)
+    return true
+}
+func (m *memory) BlockReadFromMemory (start uint16, stop uint16) [] byte {
+    buffer := make([] byte, stop-start)
+    var reservedStart, reservedStop, ramStart, ramStop uint16
+    if isAddressReserved(start) {
+        reservedStart = start
+    }else {
+        ramStart = calculateRAMOffset(start)
+    }
+    if isAddressReserved(stop){
+        reservedStop = stop
+    }else {
+        ramStop = calculateRAMOffset(stop)
+    }
+    separator := reservedStop - reservedStart
+    copy(buffer[:separator], m.reserved[reservedStart:reservedStop])
+    copy(buffer[separator:], m.ram[ramStart:ramStop])
+    return buffer
+}
+
 func (m *memory) LoadReserved () {
     m.reserved = [512] uint8 {
-		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+		0x90, 0x90, 0x90, 0x90, 0xF0, // 0
         0x20, 0x60, 0x20, 0x20, 0x70, // 1
         0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
         0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3

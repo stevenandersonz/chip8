@@ -24,7 +24,7 @@ func (m *memory) ReadFromMemory (address uint16) byte {
         return m.ram[address - ramStartAt]
     }
 }
-func (m *memory) WriteMemory(address uint16, value byte) bool {
+func (m *memory) WriteToMemory(address uint16, value byte) bool {
     if isAddressReserved(address){
         return false
     }
@@ -60,7 +60,7 @@ func (m *memory) BlockReadFromMemory (start uint16, stop uint16) [] byte {
 
 func (m *memory) LoadReserved () {
     m.reserved = [512] uint8 {
-		0x90, 0x90, 0x90, 0x90, 0xF0, // 0
+		0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
         0x20, 0x60, 0x20, 0x20, 0x70, // 1
         0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
         0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3

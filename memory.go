@@ -14,7 +14,7 @@ func isAddressReserved(address uint16) bool {
     return address < ramStartAt
 }
 func (m *memory) LoadProgram (program []byte, programSize uint16) {
-    m.BlockWriteToMemory(ramStartAt, programSize, program)
+    m.WriteBlockToMemory(ramStartAt, programSize, program)
 }
 
 func (m *memory) ReadFromMemory (address uint16) byte {
@@ -31,7 +31,7 @@ func (m *memory) WriteToMemory(address uint16, value byte) bool {
     m.ram[calculateRAMOffset(address)]= value
     return true
 }
-func (m *memory) BlockWriteToMemory(start uint16, stop uint16, data []byte) bool {
+func (m *memory) WriteBlockToMemory(start uint16, stop uint16, data []byte) bool {
     if start < 0x200 {
         return false
     }
@@ -39,7 +39,7 @@ func (m *memory) BlockWriteToMemory(start uint16, stop uint16, data []byte) bool
     copy(dst, data)
     return true
 }
-func (m *memory) BlockReadFromMemory (start uint16, stop uint16) [] byte {
+func (m *memory) ReadBlockFromMemory (start uint16, stop uint16) [] byte {
     buffer := make([] byte, stop-start)
     var reservedStart, reservedStop, ramStart, ramStop uint16
     if isAddressReserved(start) {

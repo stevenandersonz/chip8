@@ -28,6 +28,7 @@ func loadRom (path string){
     displayOP(rom, romSize)
 }
 func main () {
+    InitScreen()
 }
 
 

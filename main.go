@@ -4,7 +4,7 @@ import (
     "fmt"
     "encoding/hex"
     "os"
-)
+ )
 func check(e error) {
     if e != nil {
         panic(e)
@@ -28,7 +28,15 @@ func loadRom (path string){
     displayOP(rom, romSize)
 }
 func main () {
-    InitScreen()
+    cpu := InitCPU()
+    rom, romSize := openFile("IBM_test.ch8")
+    cpu.LoadProgram(*rom, romSize)
+    counter := uint(1)
+    max:= uint(2)
+    for counter <= max {
+        cpu.Cycle()
+        counter++
+    }
 }
 
 

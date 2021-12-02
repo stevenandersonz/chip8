@@ -7,17 +7,18 @@ import (
 type cpu struct {
     m *memory
     regs *registers
-    display *[64][32] bool
+    display *Display
     stack *[16] uint16
 }
 func getInstructionChar(instruction uint16) string {
     return fmt.Sprintf("%04X", instruction)
 }
 
-func  NewProcessor () *cpu {
+func  InitCPU () *cpu {
     p := new(cpu)
     p.m = InitMemory()
     p.regs = InitRegisters()
+    p.display = InitDisplay()
     return p
 }
 
@@ -29,6 +30,12 @@ func (p *cpu) FetchInstruction () uint16 {
 
 func (p *cpu) LoadProgram (program []byte, programSize uint16) {
     p.m.LoadProgram(program, programSize)
+}
+func (p *cpu) Cycle () {
+    opCode := getInstructionChar(p.FetchInstruction())
+    p.Execute(opCode)
+    p.regs.IncrementPC()
+    fmt.Println(p.regs.I)
 }
 
 

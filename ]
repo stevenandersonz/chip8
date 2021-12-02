@@ -1,0 +1,17 @@
+package main
+
+type Display struct {
+    screen [64][32]bool
+}
+
+func (d *Display) ClearScreen () {
+    for row := range d.screen {
+        for col := range d.screen[row] {
+            d.screen[row][col]=false
+        }
+    }
+}
+
+func InitDisplay () [64][32]bool {
+
+}

@@ -14,9 +14,15 @@ type registers struct {
 func InitRegisters () *registers {
     regs := new(registers)
     regs.I = 0
-    regs.PC = 0
+    regs.PC = 0x200
     regs.SP = 0
     return regs
+}
+func (r *registers) SetI (address uint16) {
+    r.I = address
+}
+func (r *registers) IncrementPC () {
+    r.PC += 2
 }
 func (r *registers) WriteVx(vx uint8, value byte) {
     r.GP[vx] = value 

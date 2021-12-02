@@ -8,7 +8,7 @@ type  memory struct {
     reserved[512] byte
 }
 func calculateRAMOffset(address uint16) uint16 {
-    return address - ramStartAt
+    return ramStartAt- address 
 }
 func isAddressReserved(address uint16) bool {
     return address < ramStartAt

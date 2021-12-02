@@ -8,6 +8,7 @@ func run () {
     cfg := pixelgl.WindowConfig{
         Title: "CHIP 8",
         Bounds: pixel.R(0,0,1024,768),
+        VSync: true,
     }
     win, err := pixelgl.NewWindow(cfg)
     if err != nil {

@@ -3,37 +3,53 @@ import (
     "fmt"
     "strconv"
 )
-
-func (p *cpu) Execute(opCode string) {
-    fmt.Println(opCode)
-    code := opCode[:1]
-    if code == "0"{
-        switch opCode {
-            case "0000":
+func convertStrToUint16(str string) uint16 {
+    val, err := strconv.ParseUint(str,16,16)
+    check(err)
+    return uint16(val)
+}
+func splitInstruccion(opCode string) (uint8, uint16){
+    code := convertStrToUint16(opCode)
+    sysCode := uint8(code >> 12)
+    value := uint16(code & 0x0FFF)
+    fmt.Printf("SYSCODE: %X\n",sysCode)
+    fmt.Printf("VAL: %X\n",value)
+    return sysCode, value
+}
+func handleSystemInstruccion (instruccion uint16, p *cpu) {
+        switch instruccion {
+            case 0x000:
                 break
-            case "00E0":
+            case 0x0E0:
                 // CLR
+                fmt.Println("clear")
                 p.display.Clear()
         }
-    }
-    switch code {
-        case "1":
+}
+func (p *cpu) Execute(opCode string) {
+    sysCode, value := splitInstruccion(opCode)
+    
+    switch sysCode {
+        case 0x0:
+            handleSystemInstruccion(value,p)
+        case 0x1:
             // Jump
-            address, err := strconv.ParseUint(opCode[1:5], 16, 32)
-            check(err)
-            p.regs.SetPC(uint16(address))
-        case "6":
+            p.regs.SetPC(value)
+        case 0x6:
             // set Register VX
+   //         x := opCode[1:2]
+ //           value := opCode[3:5]
+     //       p.regs.WriteVx(x, value)
             break
-        case "7":
+        case 0x7:
             //add value to register VX
             break
-        case "A": 
+        case 0xA: 
             // set index register I
             address, err := strconv.ParseUint(opCode[1:4], 16, 32)
             check(err)
             p.regs.SetI(uint16(address))
-        case "D":
+        case 0xD:
             // display draw
             break
     }

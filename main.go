@@ -31,12 +31,10 @@ func main () {
     cpu := InitCPU()
     rom, romSize := openFile("IBM_test.ch8")
     cpu.LoadProgram(*rom, romSize)
-    counter := uint(1)
-    max:= uint(2)
-    for counter <= max {
+    for cpu.regs.PC < 0xFFD {
         cpu.Cycle()
-        counter++
     }
+    cpu.display.Print()
 }
 
 

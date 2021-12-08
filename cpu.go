@@ -35,7 +35,6 @@ func (p *cpu) Cycle () {
     opCode := getInstructionChar(p.FetchInstruction())
     p.Execute(opCode)
     p.regs.IncrementPC()
-    fmt.Println(p.regs.I)
 }
 
 

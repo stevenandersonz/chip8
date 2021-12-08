@@ -12,8 +12,6 @@ func splitInstruccion(opCode string) (uint8, uint16){
     code := convertStrToUint16(opCode)
     sysCode := uint8(code >> 12)
     value := uint16(code & 0x0FFF)
-    fmt.Printf("SYSCODE: %X\n",sysCode)
-    fmt.Printf("VAL: %X\n",value)
     return sysCode, value
 }
 func handleSystemInstruccion (instruccion uint16, p *cpu) {
@@ -21,34 +19,38 @@ func handleSystemInstruccion (instruccion uint16, p *cpu) {
             case 0x000:
                 break
             case 0x0E0:
-                // CLR
-                fmt.Println("clear")
-                p.display.Clear()
+                 // CLR
+                 fmt.Println("clear")
+ //               p.display.Clear()
         }
 }
 func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
-    vx := p.regs.ReadVx(x) & 63
-    vy := p.regs.ReadVx(y) & 31
+    vy := p.regs.ReadVx(y) % 32
     i := p.regs.I
     p.regs.GP[15] = 0
     for j:=uint8(0); j < n; j++ {
-        spriteData:= p.m.ReadFromMemory(i)
+        vx := p.regs.ReadVx(x) % 64
+        spriteData:= p.m.ReadFromMemory(i+uint16(j))
         mask:=byte(0x80)
         for mask > 0 {
             isBitOn := uint8(spriteData & mask) > 0
+            fmt.Printf("\nmask %08b\n", mask)
+            fmt.Printf("sprite data: %08b", spriteData)
+
             if isBitOn {
                 isPixelOn := p.display.screen[vy][vx]
                 if isPixelOn {
                     p.display.screen[vy][vx] =false 
-                    p.regs.GP[15]=15
+                    p.regs.GP[15]=1
                 } else {
                     p.display.screen[vy][vx] = true
+                    p.regs.GP[15]=0
                 }
             }
-            vx += 1
+            vx = (vx + 1) % 64
             mask = mask >> 1
         }
-        vy +=1
+        vy = (vy + 1) % 32
     }
 }
 func (p *cpu) Execute(opCode string) {
@@ -70,17 +72,15 @@ func (p *cpu) Execute(opCode string) {
             x := uint8(value >> 8)
             val := uint8(value)
             p.regs.AddToVx(x, val)
-            break
         case 0xA: 
             // set index register I
             p.regs.SetI(value)
         case 0xD:
             // display draw
-            x := uint8(value >> 8)
-            y := uint8((value & 0x0F) >> 4)
-            n := uint8((value & 0x00F))
-            
-            drawSprite(x,y,n,p)
-            break
+           x := uint8(value >> 8)
+           y := uint8((value & 0x0F) >> 3)
+           n := uint8((value & 0x00F))
+           fmt.Printf("x: %v, y:%v, n:%v \n", x,y,n)
+           drawSprite(x,y,n,p)
     }
 }

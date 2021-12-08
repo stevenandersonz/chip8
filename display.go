@@ -4,7 +4,7 @@ import (
 )
 
 type Display struct {
-    screen [64][32]bool
+    screen [32][64]bool
 }
 
 func (d *Display) Clear () {
@@ -17,9 +17,14 @@ func (d *Display) Clear () {
 func (d *Display) Print () {
     for row := range d.screen {
         for col := range d.screen[row] {
-            fmt.Printf(` %v `,d.screen[row][col])
+            pixel := d.screen[row][col]
+            if pixel {
+                fmt.Printf("*")
+            } else {
+                fmt.Printf(" ")
+            }
         }
-        fmt.Printf(`\n`)
+        fmt.Printf("\n")
     }
 }
 
@@ -28,6 +33,5 @@ func (d *Display) Print () {
 func InitDisplay () *Display {
     display := new(Display)
     display.Clear()
- //   display.Print()
     return display
 }

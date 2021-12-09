@@ -37,13 +37,4 @@ func TestReadBlockFromMemory (t *testing.T) {
         t.Fatalf(`Reserved at 0:5 is %s wants %s`, sprite, want)
     }
 }
-func TestWriteBlockFromMemory (t *testing.T) {
-    m := InitMemory()
-    newBlock := []byte{ 0x10, 0x20, 0x60, 0x30, 0x10 }
-    m.WriteBlockToMemory(0x200, 0x205, newBlock)
-    block := m.ReadBlockFromMemory(0x200, 0x205)
-    if !reflect.DeepEqual(newBlock, block) {
-        t.Fatalf(`try to write %v, got %v instead`, newBlock, block)
-    }
 
-}

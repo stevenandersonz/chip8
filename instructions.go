@@ -62,6 +62,10 @@ func (p *cpu) Execute(opCode string) {
         case 0x1:
             // Jump
             p.regs.SetPC(value)
+        case 0x2:
+            //stack ptr ++
+            // Put PC address to the top of the stack
+            // PC == nnn
         case 0x6:
             // set Register VX
             x := uint8(value >> 8)

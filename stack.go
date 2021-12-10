@@ -3,13 +3,17 @@ package main
 type Stack [16]uint16
 
 
-func (s *Stack) Pop(stackPtr *uint16)  (uint16, bool) {
+func (s *Stack) Pop(stackPtr *uint16)  (uint16) {
     top := s[*stackPtr]
-    (*stackPtr)--
-    return top, true
+    if *stackPtr > 0 {
+        (*stackPtr)--
+    }
+    return top
 }
-func (s *Stack) Push(address uint16, stackPtr *uint16) (bool) {
-    s[*stackPtr] = address 
-    (*stackPtr)++
-    return true
+
+func (s *Stack) Push(address uint16, stackPtr *uint16)  {
+    if *stackPtr < 15 { 
+        s[*stackPtr] = address 
+        (*stackPtr)++
+    }
 }

@@ -1,6 +1,5 @@
 package main
 import (
-    "fmt"
     "strconv"
 )
 func convertStrToUint16(str string) uint16 {
@@ -19,9 +18,7 @@ func handleSystemInstruccion (instruccion uint16, p *cpu) {
             case 0x000:
                 break
             case 0x0E0:
-                 // CLR
-                 fmt.Println("clear")
- //               p.display.Clear()
+                //p.display.Clear()
         }
 }
 func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
@@ -34,9 +31,6 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
         mask:=byte(0x80)
         for mask > 0 {
             isBitOn := uint8(spriteData & mask) > 0
-            fmt.Printf("\nmask %08b\n", mask)
-            fmt.Printf("sprite data: %08b", spriteData)
-
             if isBitOn {
                 isPixelOn := p.display.screen[vy][vx]
                 if isPixelOn {
@@ -53,8 +47,8 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
         vy = (vy + 1) % 32
     }
 }
-func (p *cpu) Execute(opCode string) {
-    sysCode, value := splitInstruccion(opCode)
+func (p *cpu) Execute(instruction string) {
+    sysCode, value := splitInstruccion(instruction)
     
     switch sysCode {
         case 0x0:
@@ -64,8 +58,40 @@ func (p *cpu) Execute(opCode string) {
             p.regs.SetPC(value)
         case 0x2:
             //stack ptr ++
+            p.regs.IncrementStackPtr()
             // Put PC address to the top of the stack
+            p.stack.Push(p.regs.GetPC(), &p.regs.stackPtr)
             // PC == nnn
+            p.regs.SetPC(value)
+        case 0x3:
+            //read x and compare vx to kk
+            //if equal increase pc by 2
+            x := uint8(value >> 8)
+            kk := uint8(value&0x0FF)
+            vx := p.regs.ReadVx(x)
+            if vx == kk {
+                p.regs.IncrementPC()
+            }
+        case 0x4:
+             //read x and compare vx to kk
+            //if not equal increase pc by 2
+            x := uint8(value >> 8)
+            kk := uint8(value&0x0FF)
+            vx := p.regs.ReadVx(x)
+            if vx != kk {
+                p.regs.IncrementPC()
+            }
+        case 0x5:
+             //read vx and vy compare them
+            //if equal increase pc by 2
+            x := uint8(value >> 8)
+            y := uint8((value & 0x0F) >> 3)
+            vx := p.regs.ReadGP(x)
+            vy := p.regs.ReadGP(y)
+            if vx == vy {
+                p.regs.IncrementPC()
+            }
+
         case 0x6:
             // set Register VX
             x := uint8(value >> 8)
@@ -76,6 +102,37 @@ func (p *cpu) Execute(opCode string) {
             x := uint8(value >> 8)
             val := uint8(value)
             p.regs.AddToVx(x, val)
+        case 0x8: 
+           opCode := uint8((value & 0x00F))
+           x := uint8(value >>8)
+           y := uint8((value& 0x0F) >>3)
+           if opCode == 0x0 {
+               p.regs.MoveVyToVx(y,x)
+           } 
+           if opCode == 0x1 {
+            p.regs.OrVxVy(x,y) 
+           } 
+           if opCode == 0x2 {
+               p.regs.AndVxVy(x,y)
+           }
+           if opCode == 0x3 {
+               p.regs.XOrVxVy(x,y)
+           }
+           if opCode == 0x4 {
+               p.regs.AddToVx(x,y)
+           }
+           if opCode == 0x5 {
+               p.regs.SubVyVx(y,x)
+           }
+           if opCode == 0x6 {
+               p.regs.ShiftRVx(x)
+           }
+           if opCode == 0x7 {
+               p.regs.SubNVxVy(x,y)
+           }
+           if opCode == 0xE {
+               p.regs.ShiftLVx(x)
+           }
         case 0xA: 
             // set index register I
             p.regs.SetI(value)
@@ -84,7 +141,6 @@ func (p *cpu) Execute(opCode string) {
            x := uint8(value >> 8)
            y := uint8((value & 0x0F) >> 3)
            n := uint8((value & 0x00F))
-           fmt.Printf("x: %v, y:%v, n:%v \n", x,y,n)
            drawSprite(x,y,n,p)
     }
 }

@@ -7,6 +7,7 @@ type registers struct {
     I uint16
     PC uint16
     SP uint16
+    stackPtr uint16
     DT byte
     ST byte
     soundBuffer *bool
@@ -15,8 +16,19 @@ func InitRegisters () *registers {
     regs := new(registers)
     regs.I = 0
     regs.PC = 0x200
-    regs.SP = 0
+    regs.stackPtr = 0
     return regs
+}
+
+func (r *registers) IncrementStackPtr() {
+    if r.stackPtr < 15 {
+        r.stackPtr++
+    }
+}
+func (r *registers) DecrementStackPtr() {
+    if r.stackPtr > 0 {
+        r.stackPtr--
+    }
 }
 func (r *registers) SetI (address uint16) {
     r.I = address
@@ -30,6 +42,10 @@ func (r *registers) WriteVx(vx uint8, value byte) {
 func (r *registers) ReadVx(vx uint8) byte {
     return r.GP[vx] 
 }
+func (r *registers) ReadGP(vIdx uint8) byte {
+    return r.GP[vIdx] 
+}
+
 func (r *registers) AddToVx(vx uint8, value byte) {
     r.GP[vx] += value
 }
@@ -70,7 +86,7 @@ func (r *registers) ShiftRVx (vx byte) {
     }
     r.GP[vx] = r.GP[vx] >> 1
 }
-func (r *registers) SubNVxVx (vx byte, vy byte) {
+func (r *registers) SubNVxVy (vx byte, vy byte) {
     if vy > vx {
         r.GP[15] = 1
     } else {

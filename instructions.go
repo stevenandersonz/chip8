@@ -1,6 +1,7 @@
 package main
 import (
     "strconv"
+    "math/rand"
 )
 func convertStrToUint16(str string) uint16 {
     val, err := strconv.ParseUint(str,16,16)
@@ -133,9 +134,22 @@ func (p *cpu) Execute(instruction string) {
            if opCode == 0xE {
                p.regs.ShiftLVx(x)
            }
+        case 0x9: 
+            x := uint8(value >>8)
+            y := uint8((value& 0x0F) >>3)
+            p.regs.SkipNextInstruction(x, y)
+
         case 0xA: 
             // set index register I
             p.regs.SetI(value)
+        case 0xB:
+            jumpTo := uint16(p.regs.ReadGP(0)) + value
+            p.regs.SetPC(jumpTo)
+        case 0xC:
+            x := uint8(value >>8)
+            kk := uint8(value&0x0FF)
+            nRand := uint8(rand.Intn(256))
+            p.regs.AndVxVy(x,nRand&kk)
         case 0xD:
             // display draw
            x := uint8(value >> 8)

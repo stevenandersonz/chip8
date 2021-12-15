@@ -1,15 +1,18 @@
 package main
 
 import (
-    "fmt"
+   "fmt"
     "encoding/hex"
     "os"
+    "github.com/stevenandersonz/tree"
+    "syscall/js"
  )
 func check(e error) {
     if e != nil {
         panic(e)
     }
 }
+
 func openFile (path string) (*[]byte, uint16) {
     rom, err := os.Open(path)
     check(err)
@@ -27,14 +30,36 @@ func loadRom (path string){
     rom, romSize := openFile(path)
     displayOP(rom, romSize)
 }
+func getDisplay (screen [32][64]bool) ([32][64]bool) {
+    return screen
+}
+
+func getDisplayWrapper () js.Func {
+    getDisplayFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+        jsDoc := js.Global().Get("document")
+        if !jsDoc.Truthy() {
+            return "unable to get doc"
+        }
+        DOMDocument := tree.TreeElement(jsDoc)
+        display := DOMDocument.GetElementById("chip8Display")
+        p := DOMDocument.CreateElement("div", []string{"style=width:20px;height:20px;background-color:black;"})
+        display.AppendChild(p)
+        str := "str"
+        return str
+    })
+    return getDisplayFunc
+}
+  //  rom, romSize := openFile("./roms/IBM_test.ch8")
+   // cpu.LoadProgram(*rom, romSize)
+ //   for cpu.regs.PC < 0xFFD {
+   //     cpu.Cycle()
+    //}
+    //cpu.display.Print()
+ 
 func main () {
-    cpu := InitCPU()
-    rom, romSize := openFile("./roms/IBM_test.ch8")
-    cpu.LoadProgram(*rom, romSize)
-    for cpu.regs.PC < 0xFFD {
-        cpu.Cycle()
-    }
-    cpu.display.Print()
+    //   cpu := InitCPU()
+   js.Global().Set("getChip8Display", getDisplayWrapper())
+    <-make(chan bool)
 }
 
 

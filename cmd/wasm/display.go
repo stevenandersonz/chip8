@@ -1,7 +1,5 @@
 package main
-import (
-    "fmt"
-)
+
 
 type Display struct {
     screen [32][64]bool
@@ -14,17 +12,12 @@ func (d *Display) Clear () {
         }
     }
 }
-func (d *Display) Print () {
+func (d *Display) Print (drawPixel func(bool,int, int)) {
     for row := range d.screen {
         for col := range d.screen[row] {
             pixel := d.screen[row][col]
-            if pixel {
-                fmt.Printf("*")
-            } else {
-                fmt.Printf(" ")
-            }
+            drawPixel(pixel,row,col)
         }
-        fmt.Printf("\n")
     }
 }
 

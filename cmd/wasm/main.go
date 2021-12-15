@@ -6,6 +6,8 @@ import (
     "os"
     "github.com/stevenandersonz/tree"
     "syscall/js"
+    "bytes"
+    "strconv"
  )
 func check(e error) {
     if e != nil {
@@ -33,22 +35,48 @@ func loadRom (path string){
 func getDisplay (screen [32][64]bool) ([32][64]bool) {
     return screen
 }
+func getROMWrapper (p *cpu) js.Func {
+    getROMFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+        array := args[0]
+		buffer := make([]uint8, array.Get("byteLength").Int())
+		js.CopyBytesToGo(buffer, array)
+		reader:= bytes.NewReader(buffer)
+        programSize,err  := reader.Read(buffer)
+        check(err)
 
-func getDisplayWrapper () js.Func {
+		p.LoadProgram([]byte(buffer), uint16(programSize))
+        for p.regs.PC < 0xFFD {
+            p.Cycle()
+        }
+        return nil
+    })
+
+    return getROMFunc
+}
+func getDisplayWrapper (p *cpu) js.Func {
     getDisplayFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
         jsDoc := js.Global().Get("document")
         if !jsDoc.Truthy() {
             return "unable to get doc"
         }
         DOMDocument := tree.TreeElement(jsDoc)
-        display := DOMDocument.GetElementById("chip8Display")
-        p := DOMDocument.CreateElement("div", []string{"style=width:20px;height:20px;background-color:black;"})
-        display.AppendChild(p)
-        str := "str"
-        return str
+        displayUI := DOMDocument.GetElementById("chip8Display")
+        p.display.Print(func (pixel bool, x int,y int){
+            id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
+            if pixel {
+                pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: pink; width:10px; height:10px;"})
+                displayUI.AppendChild(pixelUI)
+            } else {
+                pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: black; width:10px; height:10px;"})
+                displayUI.AppendChild(pixelUI)
+            }
+
+        })
+        return nil
     })
     return getDisplayFunc
 }
+
   //  rom, romSize := openFile("./roms/IBM_test.ch8")
    // cpu.LoadProgram(*rom, romSize)
  //   for cpu.regs.PC < 0xFFD {
@@ -57,8 +85,9 @@ func getDisplayWrapper () js.Func {
     //cpu.display.Print()
  
 func main () {
-    //   cpu := InitCPU()
-   js.Global().Set("getChip8Display", getDisplayWrapper())
+    cpu := InitCPU()
+   js.Global().Set("getChip8Display", getDisplayWrapper(cpu))
+   js.Global().Set("loadROM", getROMWrapper(cpu))
     <-make(chan bool)
 }
 

@@ -1,0 +1,74 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="wasm_exec.js"></script>
+    <script>
+      const go = new Go();
+      WebAssembly.instantiateStreaming(
+        fetch("chip8.wasm"),
+        go.importObject
+      ).then((result) => {
+        go.run(result.instance);
+      });
+    </script>
+    <script>
+      window.onload = (event) => {
+        document
+          .getElementById("chip8ROMUploader")
+          .addEventListener("change", function () {
+            console.log("GET");
+            let reader = new FileReader();
+            reader.onload = (ev) => {
+              bytes = new Uint8Array(ev.target.result);
+              loadROM(bytes);
+            };
+            reader.readAsArrayBuffer(this.files[0]);
+            // setInterval(getChip8Display, 500)
+          });
+        
+      };
+      function handleKeypress(self) {
+        let key = self.id.split('-')[1]
+        ReadPressKey(key);   
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Chip 8 Interpreter</h1>
+    <section
+      style="
+        width: 640px;
+        height: 320px;
+        background-color: blue;
+        display: flex;
+        flex-wrap: wrap;
+      "
+      id="chip8Display"
+    ></section>
+    <input id="chip8ROMUploader" type="file" name="chip8ROM" />
+    <section id="chip8Keyboard" style="
+    margin-top: 2rem;
+    width: 90px;
+    height: 90px;
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+  "> 
+      <button id="key-1" onclick="handleKeypress(this)" style="height:20px; width:20px;"> 1 </button>
+      <button id="key-2" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 2 </button>
+      <button id="key-3" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 3 </button>
+      <button id="key-C" onclick="handleKeypress(this)"style="height:20px; width:20px;"> C </button>
+      <button id="key-4" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 4 </button>
+      <button id="key-5" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 5 </button>
+      <button id="key-6" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 6 </button>
+      <button id="key-D" onclick="handleKeypress(this)"style="height:20px; width:20px;"> D </button>
+      <button id="key-7" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 7 </button>
+      <button id="key-8" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 8 </button>
+      <button id="key-9" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 9 </button>
+      <button id="key-E" onclick="handleKeypress(this)"style="height:20px; width:20px;"> E </button>
+      <button id="key-A" onclick="handleKeypress(this)"style="height:20px; width:20px;"> A </button>
+      <button id="key-0" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 0 </button>
+      <button id="key-B" onclick="handleKeypress(this)"style="height:20px; width:20px;"> B </button>
+      <button id="key-F" onclick="handleKeypress(this)"style="height:20px; width:20px;"> F </button>
+  </body>
+</html>

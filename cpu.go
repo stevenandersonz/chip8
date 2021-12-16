@@ -9,6 +9,7 @@ type cpu struct {
     regs *registers
     display *Display
     stack *Stack
+    keyboard *Keyboard
 }
 func getInstructionChar(instruction uint16) string {
     return fmt.Sprintf("%04X", instruction)
@@ -19,6 +20,7 @@ func  InitCPU () *cpu {
     p.m = InitMemory()
     p.regs = InitRegisters()
     p.display = InitDisplay()
+    p.keyboard = InitKeyboard()
     p.stack = new(Stack)
     return p
 }

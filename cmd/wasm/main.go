@@ -2,6 +2,7 @@ package main
 
 import (
    "fmt"
+   "time"
     "encoding/hex"
     "os"
     "github.com/stevenandersonz/tree"
@@ -43,15 +44,45 @@ func getROMWrapper (p *cpu) js.Func {
 		reader:= bytes.NewReader(buffer)
         programSize,err  := reader.Read(buffer)
         check(err)
-
 		p.LoadProgram([]byte(buffer), uint16(programSize))
-        for p.regs.PC < 0xFFD {
-            p.Cycle()
-        }
+        RunChip8(p)
         return nil
     })
 
     return getROMFunc
+
+}
+func RunChip8(p *cpu) {
+    clockSpeed := uint64(500)
+    for p.regs.PC < 0xFFD {
+        js.Global().Get("console").Call("log", p.lastInstruction)
+        p.Cycle()
+        time.Sleep(time.Second / time.Duration(clockSpeed))
+    }
+}
+func RunGraphics(p *cpu) {
+    jsDoc := js.Global().Get("document")
+    DOMDocument := tree.TreeElement(jsDoc)
+    displayUI := DOMDocument.GetElementById("chip8Display")
+    for {
+
+        if p.display.draw {
+            js.Value(displayUI).Set("innerHTML", "")
+            p.display.Print(func (pixel bool, x int,y int){
+                id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
+                if pixel {
+                    pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: pink; width:10px; height:10px;"})
+                    displayUI.AppendChild(pixelUI)
+                } else {
+                    pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: black; width:10px; height:10px;"})
+                    displayUI.AppendChild(pixelUI)
+                }
+
+            })
+                p.display.draw =false
+        }
+                time.Sleep(time.Second / time.Duration(clockSpeed))
+    }
 }
 func getDisplayWrapper (p *cpu) js.Func {
     getDisplayFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
@@ -61,6 +92,7 @@ func getDisplayWrapper (p *cpu) js.Func {
         }
         DOMDocument := tree.TreeElement(jsDoc)
         displayUI := DOMDocument.GetElementById("chip8Display")
+        js.Value(displayUI).Set("innerHTML", "")
         p.display.Print(func (pixel bool, x int,y int){
             id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
             if pixel {
@@ -86,9 +118,10 @@ func getDisplayWrapper (p *cpu) js.Func {
  
 func main () {
     cpu := InitCPU()
-   js.Global().Set("getChip8Display", getDisplayWrapper(cpu))
-   js.Global().Set("loadROM", getROMWrapper(cpu))
-    <-make(chan bool)
+    js.Global().Set("getChip8Display", getDisplayWrapper(cpu))
+    js.Global().Set("loadROM", getROMWrapper(cpu))
+//   go RunGraphics(cpu)
+    <- make(chan bool)
 }
 
 

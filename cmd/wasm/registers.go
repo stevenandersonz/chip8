@@ -45,7 +45,9 @@ func (r *registers) ReadVx(vx uint8) byte {
 func (r *registers) ReadGP(vIdx uint8) byte {
     return r.GP[vIdx] 
 }
-
+func (r *registers) WriteGP(vx uint8, value byte) {
+    r.GP[vx] = value 
+}
 func (r *registers) AddToVx(vx uint8, value byte) {
     r.GP[vx] += value
 }

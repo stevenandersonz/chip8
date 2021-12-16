@@ -3,6 +3,7 @@ package main
 
 type Display struct {
     screen [32][64]bool
+    draw bool
 }
 
 func (d *Display) Clear () {

@@ -47,6 +47,7 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
         }
         vy = (vy + 1) % 32
     }
+    p.display.draw = true
 }
 func (p *cpu) Execute(instruction string) {
     sysCode, value := splitInstruccion(instruction)
@@ -156,5 +157,58 @@ func (p *cpu) Execute(instruction string) {
            y := uint8((value & 0x0F) >> 3)
            n := uint8((value & 0x00F))
            drawSprite(x,y,n,p)
+        case 0xE:
+           x := uint8(value >> 8)
+           kk := uint8(value&0x0FF)
+           vx := p.regs.ReadGP(x)
+           if kk == 0x9E {
+                if p.keyboard.m[vx]  {
+                    p.regs.IncrementPC()
+                }
+            }
+            if kk == 0xA1 {
+                if !p.keyboard.m[vx]  {
+                    p.regs.IncrementPC()
+                }
+            }
+        case 0xF:
+            x := uint8(value >> 8)
+            kk := uint8(value&0x0FF)
+            vx := p.regs.ReadGP(x)
+            if kk == 0x07 {
+                p.regs.WriteGP(x, p.regs.DT)
+            }
+            if kk == 0x0A {
+                //halt execution until key is pressed
+                key := p.keyboard.WaitForKeyPress()
+                p.regs.WriteGP(x, key)
+            }
+            if kk == 0x15 {
+                p.regs.DT = vx
+            }
+            if kk == 0x18 {
+                break
+            }
+            if kk == 0x1E {
+                p.regs.I += uint16(vx)
+            }
+            if kk == 0x29 {
+                p.regs.I = uint16(vx)
+            }
+            if kk == 0x33 {
+                bcd := [3]byte {vx/100, (vx/10)%10, vx/10} 
+                start := p.regs.I
+                end := p.regs.I+2
+                p.m.WriteBlockToMemory(start,end, bcd[:])
+            }
+            if kk == 0x55 {
+                p.m.WriteBlockToMemory(0, uint16(x), p.regs.GP[:x])
+            }
+            if kk == 0x65 {
+                block := p.m.ReadBlockFromMemory(0, uint16(x))
+                copy(p.regs.GP[:x], block)
+            }
+
+
     }
 }

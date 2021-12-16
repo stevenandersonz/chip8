@@ -155,6 +155,21 @@ func (p *cpu) Execute(instruction string) {
            x := uint8(value >> 8)
            y := uint8((value & 0x0F) >> 3)
            n := uint8((value & 0x00F))
-           drawSprite(x,y,n,p)
+         case 0xE:
+            // display draw
+           x := uint8(value >> 8)
+           kk := uint8(value&0x0FF)
+           vx := p.regs.ReadGP(x)
+           if kk == 0x9E {
+                if p.keyboard.m[vx]  {
+                    p.regs.IncrementPC()
+                }
+            }
+            if kk == 0xA1 {
+                if !p.keyboard.m[vx]  {
+                    p.regs.IncrementPC()
+                }
+            }
+
     }
 }

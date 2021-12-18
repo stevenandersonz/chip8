@@ -45,7 +45,7 @@ func getROMWrapper (p *cpu) js.Func {
         programSize,err  := reader.Read(buffer)
         check(err)
 		p.LoadProgram([]byte(buffer), uint16(programSize))
-        RunChip8(p)
+        go RunChip8(p)
         return nil
     })
 
@@ -55,7 +55,6 @@ func getROMWrapper (p *cpu) js.Func {
 func RunChip8(p *cpu) {
     clockSpeed := uint64(500)
     for p.regs.PC < 0xFFD {
-        js.Global().Get("console").Call("log", p.lastInstruction)
         p.Cycle()
         time.Sleep(time.Second / time.Duration(clockSpeed))
     }
@@ -65,23 +64,32 @@ func RunGraphics(p *cpu) {
     DOMDocument := tree.TreeElement(jsDoc)
     displayUI := DOMDocument.GetElementById("chip8Display")
     for {
-
-        if p.display.draw {
-            js.Value(displayUI).Set("innerHTML", "")
-            p.display.Print(func (pixel bool, x int,y int){
+        if !p.display.rendered {
+            p.display.Print(func (pixel bool, x int, y int) {
                 id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                if pixel {
-                    pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: pink; width:10px; height:10px;"})
-                    displayUI.AppendChild(pixelUI)
-                } else {
-                    pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: black; width:10px; height:10px;"})
-                    displayUI.AppendChild(pixelUI)
-                }
-
+                pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
+                displayUI.AppendChild(pixelUI)
             })
-                p.display.draw =false
+            p.display.rendered = true
+            js.Global().Get("console").Call("log", "rendered")
+        } else {
+            if p.display.draw {
+                p.display.Print(func (pixel bool, x int,y int){
+                    id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
+                    pixelUI := DOMDocument.GetElementById(id)
+
+                    classList:=js.Value(pixelUI).Get("classList")
+                    if pixel {
+                        classList.Call("toggle", "on")
+                    } else {
+                        classList.Call("toggle", "off")
+                    }
+
+                })
+                    p.display.draw =false
+            }
         }
-                time.Sleep(time.Second / time.Duration(clockSpeed))
+            time.Sleep(time.Second / time.Duration(60))
     }
 }
 func getDisplayWrapper (p *cpu) js.Func {
@@ -118,9 +126,8 @@ func getDisplayWrapper (p *cpu) js.Func {
  
 func main () {
     cpu := InitCPU()
-    js.Global().Set("getChip8Display", getDisplayWrapper(cpu))
     js.Global().Set("loadROM", getROMWrapper(cpu))
-//   go RunGraphics(cpu)
+    go RunGraphics(cpu)
     <- make(chan bool)
 }
 

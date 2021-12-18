@@ -15,7 +15,7 @@ type registers struct {
 func InitRegisters () *registers {
     regs := new(registers)
     regs.I = 0
-    regs.PC = 0x200
+    regs.PC = 0x198
     regs.stackPtr = 0
     return regs
 }

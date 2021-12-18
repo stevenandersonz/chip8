@@ -8,13 +8,13 @@ type  memory struct {
     reserved[512] byte
 }
 func calculateRAMOffset(address uint16) uint16 {
-    return ramStartAt- address 
+    return  address -ramStartAt
 }
 func isAddressReserved(address uint16) bool {
     return address < ramStartAt
 }
 func (m *memory) LoadProgram (program []byte, programSize uint16) {
-    m.WriteBlockToMemory(ramStartAt, programSize, program)
+    m.WriteBlockToMemory(ramStartAt, uint16(ramStartAt) + programSize, program)
 }
 
 func (m *memory) ReadFromMemory (address uint16) byte {

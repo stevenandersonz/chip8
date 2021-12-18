@@ -1,5 +1,6 @@
 package main
 import (
+    "syscall/js"
     "strconv"
     "math/rand"
 )
@@ -23,15 +24,15 @@ func handleSystemInstruccion (instruccion uint16, p *cpu) {
         }
 }
 func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
-    vy := p.regs.ReadVx(y) % 32
     i := p.regs.I
     p.regs.GP[15] = 0
-    for j:=uint8(0); j < n; j++ {
-        vx := p.regs.ReadVx(x) % 64
-        spriteData:= p.m.ReadFromMemory(i+uint16(j))
+    spriteData := p.m.ReadBlockFromMemory(i, i+uint16(n))
+    vy := p.regs.ReadGP(y)
+    for _,sprite:=range(spriteData[:]) {
+        vx := p.regs.ReadGP(x)
         mask:=byte(0x80)
         for mask > 0 {
-            isBitOn := uint8(spriteData & mask) > 0
+            isBitOn := uint8(sprite & mask) > 0
             if isBitOn {
                 isPixelOn := p.display.screen[vy][vx]
                 if isPixelOn {
@@ -47,17 +48,21 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
         }
         vy = (vy + 1) % 32
     }
-    p.display.draw = true
 }
 func (p *cpu) Execute(instruction string) {
     sysCode, value := splitInstruccion(instruction)
-    
+    js.Global().Get("console").Call("log", instruction)
+   
     switch sysCode {
         case 0x0:
             handleSystemInstruccion(value,p)
         case 0x1:
             // Jump
+            js.Global().Get("console").Call("log", "--------pc----------")
+            js.Global().Get("console").Call("log", p.regs.PC)
             p.regs.SetPC(value)
+            js.Global().Get("console").Call("log", p.regs.PC)
+            js.Global().Get("console").Call("log", "-------------------")
         case 0x2:
             //stack ptr ++
             p.regs.IncrementStackPtr()
@@ -70,16 +75,21 @@ func (p *cpu) Execute(instruction string) {
             //if equal increase pc by 2
             x := uint8(value >> 8)
             kk := uint8(value&0x0FF)
-            vx := p.regs.ReadVx(x)
+            js.Global().Get("console").Call("log", "-------0x03---------")
+            js.Global().Get("console").Call("log", p.regs.GP[x])
+            js.Global().Get("console").Call("log", kk)
+            vx := p.regs.ReadGP(x)
             if vx == kk {
+                js.Global().Get("console").Call("log", "Equal")
                 p.regs.IncrementPC()
             }
+            js.Global().Get("console").Call("log", "----------------")
         case 0x4:
              //read x and compare vx to kk
             //if not equal increase pc by 2
             x := uint8(value >> 8)
             kk := uint8(value&0x0FF)
-            vx := p.regs.ReadVx(x)
+            vx := p.regs.ReadGP(x)
             if vx != kk {
                 p.regs.IncrementPC()
             }
@@ -87,7 +97,7 @@ func (p *cpu) Execute(instruction string) {
              //read vx and vy compare them
             //if equal increase pc by 2
             x := uint8(value >> 8)
-            y := uint8((value & 0x0F) >> 3)
+            y := uint8((value >> 4) & 0x00F)
             vx := p.regs.ReadGP(x)
             vy := p.regs.ReadGP(y)
             if vx == vy {
@@ -98,16 +108,21 @@ func (p *cpu) Execute(instruction string) {
             // set Register VX
             x := uint8(value >> 8)
             val := uint8(value)
-            p.regs.WriteVx(x, val)
+            p.regs.WriteGP(x, val)
         case 0x7:
             //add value to register VX
             x := uint8(value >> 8)
             val := uint8(value)
+            js.Global().Get("console").Call("log", "-------0x07---------")
+            js.Global().Get("console").Call("log", p.regs.GP[x])
+            js.Global().Get("console").Call("log", val)
             p.regs.AddToVx(x, val)
+            js.Global().Get("console").Call("log", p.regs.GP[x])
+            js.Global().Get("console").Call("log", "----------------")
         case 0x8: 
            opCode := uint8((value & 0x00F))
            x := uint8(value >>8)
-           y := uint8((value& 0x0F) >>3)
+            y := uint8((value >> 4) & 0x00F)
            if opCode == 0x0 {
                p.regs.MoveVyToVx(y,x)
            } 
@@ -137,12 +152,16 @@ func (p *cpu) Execute(instruction string) {
            }
         case 0x9: 
             x := uint8(value >>8)
-            y := uint8((value& 0x0F) >>3)
+            y := uint8((value >> 4) & 0x00F)
             p.regs.SkipNextInstruction(x, y)
 
         case 0xA: 
             // set index register I
+            js.Global().Get("console").Call("log", "-------0xA---------")
+            js.Global().Get("console").Call("log", p.regs.I)
             p.regs.SetI(value)
+            js.Global().Get("console").Call("log", p.regs.I)
+            js.Global().Get("console").Call("log", "----------------")
         case 0xB:
             jumpTo := uint16(p.regs.ReadGP(0)) + value
             p.regs.SetPC(jumpTo)
@@ -150,11 +169,12 @@ func (p *cpu) Execute(instruction string) {
             x := uint8(value >>8)
             kk := uint8(value&0x0FF)
             nRand := uint8(rand.Intn(256))
-            p.regs.AndVxVy(x,nRand&kk)
+            p.regs.WriteGP(x,nRand&kk)
         case 0xD:
             // display draw
+            p.display.draw = true
            x := uint8(value >> 8)
-           y := uint8((value & 0x0F) >> 3)
+           y := uint8((value >> 4) & 0x00F)
            n := uint8((value & 0x00F))
            drawSprite(x,y,n,p)
         case 0xE:

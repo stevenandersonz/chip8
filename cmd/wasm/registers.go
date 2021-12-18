@@ -1,6 +1,7 @@
 package main
 import (
     "time"
+    "syscall/js"
 )
 type registers struct {
     GP [16] byte //vx -> x == idx
@@ -34,6 +35,7 @@ func (r *registers) SetI (address uint16) {
     r.I = address
 }
 func (r *registers) IncrementPC () {
+    js.Global().Get("console").Call("log", "INCREMENT PC")
     r.PC += 2
 }
 func (r *registers) WriteVx(vx uint8, value byte) {
@@ -106,7 +108,7 @@ func (r *registers) ShiftLVx (vx byte) {
 }
 func (r *registers) SkipNextInstruction (vx uint8, vy uint8) {
     if r.GP[vx] != r.GP[vy] {
-        r.PC = r.PC << 1
+        r.IncrementPC()
     }
 }
 func (regs *registers) UpdateClockTimers () {

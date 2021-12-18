@@ -58,32 +58,23 @@ func (p *cpu) Execute(instruction string) {
             handleSystemInstruccion(value,p)
         case 0x1:
             // Jump
-            js.Global().Get("console").Call("log", "--------pc----------")
-            js.Global().Get("console").Call("log", p.regs.PC)
-            p.regs.SetPC(value)
-            js.Global().Get("console").Call("log", p.regs.PC)
-            js.Global().Get("console").Call("log", "-------------------")
+            p.regs.SetPC(value-uint16(2))
         case 0x2:
             //stack ptr ++
             p.regs.IncrementStackPtr()
             // Put PC address to the top of the stack
             p.stack.Push(p.regs.GetPC(), &p.regs.stackPtr)
             // PC == nnn
-            p.regs.SetPC(value)
+            p.regs.SetPC(value-uint16(2))
         case 0x3:
             //read x and compare vx to kk
             //if equal increase pc by 2
             x := uint8(value >> 8)
             kk := uint8(value&0x0FF)
-            js.Global().Get("console").Call("log", "-------0x03---------")
-            js.Global().Get("console").Call("log", p.regs.GP[x])
-            js.Global().Get("console").Call("log", kk)
             vx := p.regs.ReadGP(x)
             if vx == kk {
-                js.Global().Get("console").Call("log", "Equal")
                 p.regs.IncrementPC()
             }
-            js.Global().Get("console").Call("log", "----------------")
         case 0x4:
              //read x and compare vx to kk
             //if not equal increase pc by 2
@@ -113,12 +104,7 @@ func (p *cpu) Execute(instruction string) {
             //add value to register VX
             x := uint8(value >> 8)
             val := uint8(value)
-            js.Global().Get("console").Call("log", "-------0x07---------")
-            js.Global().Get("console").Call("log", p.regs.GP[x])
-            js.Global().Get("console").Call("log", val)
             p.regs.AddToVx(x, val)
-            js.Global().Get("console").Call("log", p.regs.GP[x])
-            js.Global().Get("console").Call("log", "----------------")
         case 0x8: 
            opCode := uint8((value & 0x00F))
            x := uint8(value >>8)
@@ -157,11 +143,7 @@ func (p *cpu) Execute(instruction string) {
 
         case 0xA: 
             // set index register I
-            js.Global().Get("console").Call("log", "-------0xA---------")
-            js.Global().Get("console").Call("log", p.regs.I)
             p.regs.SetI(value)
-            js.Global().Get("console").Call("log", p.regs.I)
-            js.Global().Get("console").Call("log", "----------------")
         case 0xB:
             jumpTo := uint16(p.regs.ReadGP(0)) + value
             p.regs.SetPC(jumpTo)

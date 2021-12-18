@@ -65,7 +65,7 @@ func RunGraphics(p *cpu) {
     displayUI := DOMDocument.GetElementById("chip8Display")
     for {
         if !p.display.rendered {
-            p.display.Print(func (pixel bool, x int, y int) {
+            p.display.Print(func (pixel bool, y int, x int) {
                 id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
                 pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
                 displayUI.AppendChild(pixelUI)
@@ -74,15 +74,13 @@ func RunGraphics(p *cpu) {
             js.Global().Get("console").Call("log", "rendered")
         } else {
             if p.display.draw {
-                p.display.Print(func (pixel bool, x int,y int){
+                p.display.Print(func (pixel bool, y int,x int){
                     id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
                     pixelUI := DOMDocument.GetElementById(id)
-
-                    classList:=js.Value(pixelUI).Get("classList")
                     if pixel {
-                        classList.Call("toggle", "on")
+                       js.Value(pixelUI).Set("className","on")
                     } else {
-                        classList.Call("toggle", "off")
+                       js.Value(pixelUI).Set("className","off")
                     }
 
                 })

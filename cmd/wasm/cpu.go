@@ -37,10 +37,10 @@ func (p *cpu) LoadProgram (program []byte, programSize uint16) {
     p.m.LoadProgram(program, programSize)
 }
 func (p *cpu) Cycle () {
+    p.regs.IncrementPC()
     opCode := getInstructionChar(p.FetchInstruction())
     p.lastInstruction = opCode
     p.Execute(opCode)
-    p.regs.IncrementPC()
 }
 
 

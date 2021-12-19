@@ -1,133 +1,76 @@
 package main
 import (
     "time"
-    "syscall/js"
 )
-type registers struct {
-    GP [16] byte //vx -> x == idx
-    I uint16
-    PC uint16
-    SP uint16
+// Chip8 Registers
+// programCounter -> store currently executing address
+// generalPurpose -> usually referred as Vx 
+// i -> generally used to store memory addresses
+// stackPtr -> points to the top most element in the Stack
+// delayTimer -> is active whenever the delay timer is non-zero
+// soundTimer -> is active whenever the sound timer is non-zero
+type Registers struct {
+    programCounter uint16
+    i uint16
+    generalPurpose [16] byte
     stackPtr uint16
-    DT byte
-    ST byte
+    delayTimer byte
+    soundTimer byte
     soundBuffer *bool
 }
-func InitRegisters () *registers {
-    regs := new(registers)
-    regs.I = 0
-    regs.PC = 0x198
-    regs.stackPtr = 0
-    return regs
+
+
+// Get I Register  
+func (r *Registers) GetI () uint16 {
+    return r.i 
+}
+// Set I Register  
+func (r *Registers) SetI (value uint16) {
+    r.i = value
+}
+// Get Program Counter Register
+func (r *Registers) GetPC () uint16 {
+    return r.programCounter
+} 
+// Set Program Counter Register
+func (r *Registers) SetPC (address uint16) {
+    r.programCounter = address
+}
+// Increment Program Counter Register By 2
+// Each instruccion is 4 bytes long or 2 Memory block
+func (r *Registers) IncrementPC () {
+    r.programCounter += 2
+}
+// Get General Purpose Register at index idx
+func (r *Registers) GetGP(idx uint8) byte {
+    return r.generalPurpose[idx] 
+}
+// Set General Purpose Register at index idx
+func (r *Registers) SetGP(idx uint8, value byte) {
+    r.generalPurpose[idx] = value 
+}
+// Set General Purpose Register at index f
+// Use when carry result must be set
+func (r *Registers) SetVF(carry byte) {
+    r.SetGP(15,carry)
 }
 
-func (r *registers) IncrementStackPtr() {
-    if r.stackPtr < 15 {
-        r.stackPtr++
-    }
-}
-func (r *registers) DecrementStackPtr() {
-    if r.stackPtr > 0 {
-        r.stackPtr--
-    }
-}
-func (r *registers) SetI (address uint16) {
-    r.I = address
-}
-func (r *registers) IncrementPC () {
-    js.Global().Get("console").Call("log", "INCREMENT PC")
-    r.PC += 2
-}
-func (r *registers) WriteVx(vx uint8, value byte) {
-    r.GP[vx] = value 
-}
-func (r *registers) ReadVx(vx uint8) byte {
-    return r.GP[vx] 
-}
-func (r *registers) ReadGP(vIdx uint8) byte {
-    return r.GP[vIdx] 
-}
-func (r *registers) WriteGP(vx uint8, value byte) {
-    r.GP[vx] = value 
-}
-func (r *registers) AddToVx(vx uint8, value byte) {
-    r.GP[vx] += value
-}
-func (r *registers) MoveVyToVx(vy uint8, vx uint8){
-    r.GP[vx] = r.GP[vy]
-}
-func (r *registers) OrVxVy(vx byte, vy byte) {
-    r.GP[vx] = r.GP[vx] | r.GP[vy]
-}
-func (r* registers) AndVxVy(vx byte, vy byte)  {
-    r.GP[vx] = r.GP[vx] & r.GP[vy]
-}
-func (r* registers) XOrVxVy (vx byte, vy byte)  {
-     r.GP[vx] = r.GP[vx] ^  r.GP[vy]
-}
-func (r* registers) AddVyVx (vy byte, vx byte)  {
-    sum := uint16(r.GP[vx]) + uint16(r.GP[vy]) 
-    //if overflows carry 1 to VF
-    if sum > 255{
-        r.GP[15] = 1
-    } else {
-        r.GP[vx] += r.GP[vy]
-    }
-}
-func (r* registers) SubVyVx (vy uint8, vx uint8) {
-    if r.GP[vx] > r.GP[vy] {
-        r.GP[15] = 1
-    } else {
-        r.GP[15] = 0
-    }
-    r.GP[vx] = r.GP[vx] - r.GP[vy]
-}
-func (r *registers) ShiftRVx (vx byte) {
-    if r.GP[vx] & 0x01 == 1 {
-        r.GP[15] = 1
-    } else {
-        r.GP[15] = 0
-    }
-    r.GP[vx] = r.GP[vx] >> 1
-}
-func (r *registers) SubNVxVy (vx byte, vy byte) {
-    if vy > vx {
-        r.GP[15] = 1
-    } else {
-        r.GP[15] = 0
-    }
-    r.GP[vx] = r.GP[vy] - r.GP[vx]
-}
-func (r *registers) ShiftLVx (vx byte) {
-    if r.GP[vx] & 0x1 == 1 {
-        r.GP[15] = 1
-    } else {
-        r.GP[15] = 0
-    }
-    r.GP[vx] = r.GP[vx] << 1
-}
-func (r *registers) SkipNextInstruction (vx uint8, vy uint8) {
-    if r.GP[vx] != r.GP[vy] {
-        r.IncrementPC()
-    }
-}
-func (regs *registers) UpdateClockTimers () {
-    if regs.DT > 0 {
-        regs.DT--
+func (r *Registers)UpdateClockTimers () {
+    if r.delayTimer > 0 {
+        r.delayTimer--
     }
 }
 
-func (regs *registers) RegisterClockLoop () {
+func (r *Registers) RegisterClockLoop () {
     for {
-        regs.UpdateClockTimers()
+        r.UpdateClockTimers()
         time.Sleep(time.Second/60)
     }
 }
-
-func (regs *registers) GetPC () uint16 {
-    return regs.PC
-} 
-
-func (regs *registers) SetPC (address uint16) {
-    regs.PC = address
+// Creates and return a Register Pointer
+func InitRegisters () *Registers {
+    r := new(Registers)
+    r.SetPC(0x198)
+    r.stackPtr = 0
+    return r
 }

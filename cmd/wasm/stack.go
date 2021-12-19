@@ -17,3 +17,14 @@ func (s *Stack) Push(address uint16, stackPtr *uint16)  {
         (*stackPtr)++
     }
 }
+
+func (r *Registers) IncrementStackPtr() {
+    if r.stackPtr < 15 {
+        r.stackPtr++
+    }
+}
+func (r *Registers) DecrementStackPtr() {
+    if r.stackPtr > 0 {
+        r.stackPtr--
+    }
+}

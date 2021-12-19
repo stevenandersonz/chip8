@@ -1,6 +1,5 @@
 package main
 import (
-    "syscall/js"
     "strconv"
     "math/rand"
 )
@@ -18,8 +17,9 @@ func convertStrToUint16(str string) uint16 {
     return uint16(val)
 }
 func splitInstruccion(instruction string) (uint8, InstructionVars){
-    opCode := convertStrToUint16(instruction) >> 12
-    nnn := uint16(opCode & 0x0FFF)
+    instructionHex := convertStrToUint16(instruction)
+    opCode := instructionHex >> 12
+    nnn := uint16(instructionHex & 0x0FFF)
     vars := InstructionVars {
         nnn:nnn, 
         nn:uint8(nnn & 0x00FF),
@@ -33,6 +33,9 @@ func handleSystemInstruccion (instruccion uint16, p *cpu) {
         switch instruccion {
             case 0x000:
                 break
+            case 0x0EE:
+                addr:= p.stack.Pop(&(p.registers.stackPtr))
+                p.registers.SetPC(addr)
             case 0x0E0:
                 p.display.Clear()
         }
@@ -56,7 +59,7 @@ func Add (vx byte, vy byte) (uint8, byte) {
     if sum > 255{
         carry = 0x1
     } 
-    return uint8(sum & 0x00FF), carry
+    return vx + vy, carry
 }
 func Sub (vx byte, vy byte) (byte, byte) {
     carry := byte(0x0)
@@ -81,7 +84,7 @@ func SubN (vx byte, vy byte) (byte, byte){
 }
 func Shl (vx byte) (byte, byte) {
     carry := byte(0x0)
-    if vx & 0xFF == 0x1 {
+    if vx >> 7  == 0x1 {
         carry = byte(0x1)
     } 
    return vx << 1, carry
@@ -93,9 +96,9 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
     i := p.registers.GetI()
     p.registers.SetVF(0)
     spriteData := p.m.ReadBlockFromMemory(i, i+uint16(n))
-    vy := p.registers.GetGP(y)
+    vy := p.registers.GetGP(y)%32
     for _,sprite:=range(spriteData[:]) {
-        vx := p.registers.GetGP(x)
+        vx := p.registers.GetGP(x)%64
         mask:=byte(0x80)
         for mask > 0 {
             isBitOn := uint8(sprite & mask) > 0
@@ -125,7 +128,6 @@ func (p *cpu) Execute(instruction string) {
     nnn := vars.nnn
     vx := p.registers.GetGP(x)
     vy := p.registers.GetGP(y)
-    js.Global().Get("console").Call("log", instruction)
     switch opCode {
         case 0x0:
             handleSystemInstruccion(nnn,p)
@@ -133,10 +135,9 @@ func (p *cpu) Execute(instruction string) {
             // Jump
             p.registers.SetPC(nnn-uint16(2))
         case 0x2:
-            //stack ptr ++
-            p.registers.IncrementStackPtr()
             // Put PC address to the top of the stack
-            p.stack.Push(p.registers.GetPC(), &p.registers.stackPtr)
+            
+            p.stack.Push(p.registers.GetPC(), &(p.registers.stackPtr))
             // PC == nnn
             p.registers.SetPC(nnn-uint16(2))
         case 0x3:
@@ -163,7 +164,7 @@ func (p *cpu) Execute(instruction string) {
             p.registers.SetGP(x, nn)
         case 0x7:
             //add value to register VX
-            p.registers.SetGP(x, AddTo(x, nn))
+            p.registers.SetGP(x, AddTo(vx, nn))
         case 0x8: 
            if n == 0x0 {
                p.registers.SetGP(x, vy)

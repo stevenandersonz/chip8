@@ -4,7 +4,7 @@ type Stack [16]uint16
 
 
 func (s *Stack) Pop(stackPtr *uint16)  (uint16) {
-    top := s[*stackPtr]
+    top := s[*stackPtr-1]
     if *stackPtr > 0 {
         (*stackPtr)--
     }
@@ -13,8 +13,8 @@ func (s *Stack) Pop(stackPtr *uint16)  (uint16) {
 
 func (s *Stack) Push(address uint16, stackPtr *uint16)  {
     if *stackPtr < 15 { 
-        s[*stackPtr] = address 
         (*stackPtr)++
+        s[*stackPtr-1] = address 
     }
 }
 

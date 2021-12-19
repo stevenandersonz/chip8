@@ -71,7 +71,6 @@ func RunGraphics(p *cpu) {
                 displayUI.AppendChild(pixelUI)
             })
             p.display.rendered = true
-            js.Global().Get("console").Call("log", "rendered")
         } else {
             if p.display.draw {
                 p.display.Print(func (pixel bool, y int,x int){
@@ -87,41 +86,9 @@ func RunGraphics(p *cpu) {
                     p.display.draw =false
             }
         }
-            time.Sleep(time.Second / time.Duration(60))
+            time.Sleep(time.Second / time.Duration(500))
     }
 }
-func getDisplayWrapper (p *cpu) js.Func {
-    getDisplayFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-        jsDoc := js.Global().Get("document")
-        if !jsDoc.Truthy() {
-            return "unable to get doc"
-        }
-        DOMDocument := tree.TreeElement(jsDoc)
-        displayUI := DOMDocument.GetElementById("chip8Display")
-        js.Value(displayUI).Set("innerHTML", "")
-        p.display.Print(func (pixel bool, x int,y int){
-            id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-            if pixel {
-                pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: pink; width:10px; height:10px;"})
-                displayUI.AppendChild(pixelUI)
-            } else {
-                pixelUI := DOMDocument.CreateElement("div", []string{id, "style=background-color: black; width:10px; height:10px;"})
-                displayUI.AppendChild(pixelUI)
-            }
-
-        })
-        return nil
-    })
-    return getDisplayFunc
-}
-
-  //  rom, romSize := openFile("./roms/IBM_test.ch8")
-   // cpu.LoadProgram(*rom, romSize)
- //   for cpu.regs.PC < 0xFFD {
-   //     cpu.Cycle()
-    //}
-    //cpu.display.Print()
- 
 func main () {
     cpu := InitCPU()
     js.Global().Set("loadROM", getROMWrapper(cpu))

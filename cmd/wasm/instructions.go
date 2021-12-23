@@ -250,7 +250,7 @@ func (p *cpu) Execute(instruction string) {
                 p.registers.SetI(uint16(vx) + p.registers.GetI())
             }
             if nn == 0x29 {
-                p.registers.SetI(uint16(vx))
+                p.registers.SetI(uint16(vx)*5)
             }
             if nn == 0x33 {
                 bcd := [3]byte {vx/100, (vx/10)%10, vx/10} 
@@ -259,11 +259,11 @@ func (p *cpu) Execute(instruction string) {
                 p.m.WriteBlockToMemory(start,end, bcd[:])
             }
             if nn == 0x55 {
-                p.m.WriteBlockToMemory(0, uint16(x), p.registers.generalPurpose[:x])
+                p.m.WriteBlockToMemory(p.registers.GetI(), p.registers.GetI() + uint16(x+1), p.registers.generalPurpose[:x+1])
             }
             if nn == 0x65 {
-                block := p.m.ReadBlockFromMemory(0, uint16(x))
-                copy(p.registers.generalPurpose[:x], block)
+                block := p.m.ReadBlockFromMemory(p.registers.GetI(), p.registers.GetI()+uint16(x+1))
+                copy(p.registers.generalPurpose[:x+1], block)
             }
 
 

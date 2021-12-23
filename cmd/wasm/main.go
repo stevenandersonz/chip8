@@ -1,15 +1,16 @@
 package main
 
 import (
-   "fmt"
-   "time"
-    "encoding/hex"
-    "os"
-    "github.com/stevenandersonz/tree"
-    "syscall/js"
-    "bytes"
-    "strconv"
- )
+	"bytes"
+	"encoding/hex"
+	"fmt"
+	"os"
+	"strconv"
+	"syscall/js"
+	"time"
+
+	"github.com/stevenandersonz/tree"
+)
 func check(e error) {
     if e != nil {
         panic(e)
@@ -33,9 +34,7 @@ func loadRom (path string){
     rom, romSize := openFile(path)
     displayOP(rom, romSize)
 }
-func getDisplay (screen [32][64]bool) ([32][64]bool) {
-    return screen
-}
+
 func getROMWrapper (p *cpu) js.Func {
     getROMFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
         array := args[0]
@@ -45,8 +44,8 @@ func getROMWrapper (p *cpu) js.Func {
         programSize,err  := reader.Read(buffer)
         check(err)
 		p.LoadProgram([]byte(buffer), uint16(programSize))
-        go RunChip8(p)
-        return nil
+        RunChip8(p)
+        return true
     })
 
     return getROMFunc
@@ -59,40 +58,56 @@ func RunChip8(p *cpu) {
         time.Sleep(time.Second / time.Duration(clockSpeed))
     }
 }
-func RunGraphics(p *cpu) {
+func initDisplay(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
     jsDoc := js.Global().Get("document")
     DOMDocument := tree.TreeElement(jsDoc)
     displayUI := DOMDocument.GetElementById("chip8Display")
-    for {
-        if !p.display.rendered {
-            p.display.Print(func (pixel bool, y int, x int) {
-                id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
-                displayUI.AppendChild(pixelUI)
-            })
-            p.display.rendered = true
-        } else {
-            if p.display.draw {
-                p.display.Print(func (pixel bool, y int,x int){
-                    id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                    pixelUI := DOMDocument.GetElementById(id)
-                    if pixel {
-                       js.Value(pixelUI).Set("className","on")
-                    } else {
-                       js.Value(pixelUI).Set("className","off")
-                    }
-
-                })
-                    p.display.draw =false
-            }
-        }
-            time.Sleep(time.Second / time.Duration(500))
+    if !p.display.rendered {
+        p.display.Print(func (pixel bool, y int, x int) {
+            id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
+            pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
+            displayUI.AppendChild(pixelUI)
+        })
+        p.display.rendered = true
     }
+    return nil
+    })
+}
+func refreshDisplay(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+                jsDoc := js.Global().Get("document")
+                DOMDocument := tree.TreeElement(jsDoc)
+                if p.display.draw {
+                    p.display.Print(func (pixel bool, y int,x int){
+                            id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
+                            pixelUI := DOMDocument.GetElementById(id)
+                            if pixel {
+                                js.Value(pixelUI).Set("className","on")
+                            } else {
+                                js.Value(pixelUI).Set("className","off")
+                            }
+                        })
+                            p.display.draw =false
+                }
+                return nil 
+            })
+}
+func getKeyPress(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        keyASCII := args[0]
+        p.keyboard.WriteKeyPress(keyASCII.String())
+       time.sleep(time.Second / time.Duration(500) 
+        js.Global().Get("console").Call("log", p.keyboard.lastKey)
+        return nil
+    })
 }
 func main () {
     cpu := InitCPU()
     js.Global().Set("loadROM", getROMWrapper(cpu))
-    go RunGraphics(cpu)
+    js.Global().Set("initDisplay", initDisplay(cpu))
+    js.Global().Set("refreshDisplay", refreshDisplay(cpu))
+    js.Global().Set("onKeypress", getKeyPress(cpu))
     <- make(chan bool)
 }
 

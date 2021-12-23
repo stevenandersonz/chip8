@@ -23,8 +23,6 @@ func (d *Display) Print (drawPixel func(bool,int, int)) {
     }
 }
 
-
-
 func InitDisplay () *Display {
     display := new(Display)
     display.rendered = false

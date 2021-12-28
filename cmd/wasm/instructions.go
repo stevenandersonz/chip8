@@ -1,6 +1,7 @@
 package main
 import (
     "strconv"
+    "syscall/js"
     "math/rand"
 )
 type InstructionVars struct {
@@ -120,6 +121,7 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
 }
 
 func (p *cpu) Execute(instruction string) {
+    js.Global().Get("console").Call("log", instruction)
     opCode, vars := splitInstruccion(instruction)
     x := vars.x
     y := vars.y
@@ -222,12 +224,12 @@ func (p *cpu) Execute(instruction string) {
            drawSprite(x,y,n,p)
         case 0xE:
            if nn == 0x9E {
-                if p.keyboard.m[vx]  {
+                if p.keyboard.lastKey == vx  {
                     p.registers.IncrementPC()
                 }
             }
             if nn == 0xA1 {
-                if !p.keyboard.m[vx]  {
+                if p.keyboard.lastKey != vx  {
                     p.registers.IncrementPC()
                 }
             }

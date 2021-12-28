@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"syscall/js"
 	"time"
-
 	"github.com/stevenandersonz/tree"
 )
 func check(e error) {
@@ -44,7 +43,7 @@ func getROMWrapper (p *cpu) js.Func {
         programSize,err  := reader.Read(buffer)
         check(err)
 		p.LoadProgram([]byte(buffer), uint16(programSize))
-        RunChip8(p)
+        go RunChip8(p)
         return true
     })
 
@@ -60,18 +59,18 @@ func RunChip8(p *cpu) {
 }
 func initDisplay(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
-    jsDoc := js.Global().Get("document")
-    DOMDocument := tree.TreeElement(jsDoc)
-    displayUI := DOMDocument.GetElementById("chip8Display")
-    if !p.display.rendered {
-        p.display.Print(func (pixel bool, y int, x int) {
-            id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-            pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
-            displayUI.AppendChild(pixelUI)
-        })
-        p.display.rendered = true
-    }
-    return nil
+        jsDoc := js.Global().Get("document")
+        DOMDocument := tree.TreeElement(jsDoc)
+        displayUI := DOMDocument.GetElementById("chip8Display")
+        if !p.display.rendered {
+            p.display.Print(func (pixel bool, y int, x int) {
+                id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
+                pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
+                displayUI.AppendChild(pixelUI)
+            })
+            p.display.rendered = true
+        }
+        return nil
     })
 }
 func refreshDisplay(p *cpu) js.Func {
@@ -96,9 +95,9 @@ func refreshDisplay(p *cpu) js.Func {
 func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         keyASCII := args[0]
-        p.keyboard.WriteKeyPress(keyASCII.String())
-       time.sleep(time.Second / time.Duration(500) 
-        js.Global().Get("console").Call("log", p.keyboard.lastKey)
+        p.keyboard.WriteKeyPress(strconv.Itoa(keyASCII.Int()))
+        js.Global().Get("console").Call("log", "PRESSED")
+        time.Sleep(time.Second / time.Duration(500))
         return nil
     })
 }

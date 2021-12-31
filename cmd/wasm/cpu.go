@@ -15,12 +15,11 @@ func getInstructionChar(instruction uint16) string {
     return fmt.Sprintf("%04X", instruction)
 }
 
-func  InitCPU () *cpu {
-    var screenBuffer[32][64] bool
+func  InitCPU (screenBuffer *[32][64] bool) *cpu {
     p := new(cpu)
     p.m = InitMemory()
     p.registers = InitRegisters()
-    p.display = InitDisplay(&screenBuffer)
+    p.display = InitDisplay(screenBuffer)
     p.keyboard = InitKeyboard()
     p.stack = new(Stack)
     go p.registers.RegisterClockLoop()

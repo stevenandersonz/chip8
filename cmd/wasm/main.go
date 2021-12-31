@@ -56,7 +56,9 @@ func getROMWrapper (p *cpu) js.Func {
 func RunChip8(p *cpu) {
     clockSpeed := uint64(500)
     for p.registers.GetPC() < 0xFFD {
+        start := time.Now()
         p.Cycle()
+        timeTrack(start, "cycle") 
         time.Sleep(time.Second / time.Duration(clockSpeed))
     }
 }
@@ -77,13 +79,19 @@ func initDisplay(p *cpu) js.Func {
     })
 }
 func refreshDisplay(p *cpu) js.Func {
-    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
                 jsDoc := js.Global().Get("document")
+                cache := make(map[string]js.Value)
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+                start:=time.Now()
                 DOMDocument := tree.TreeElement(jsDoc)
                 if p.display.draw {
                     p.display.Print(func (pixel bool, y int,x int){
                             id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                            pixelUI := js.Value(DOMDocument.GetElementById(id))
+                            pixelUI, ok := cache[id]
+                            if !ok {
+                                pixelUI = js.Value(DOMDocument.GetElementById(id))
+                                cache[id] = pixelUI
+                            }
                             pixelUIVal := pixelUI.Get("className").String()
                             if pixel && pixelUIVal == "off" {
                                pixelUI.Set("className","on")
@@ -94,20 +102,20 @@ func refreshDisplay(p *cpu) js.Func {
                         })
                             p.display.draw =false
                 }
+                timeTrack(start, "DRAW UI")
                 return nil 
             })
 }
 func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         keyASCII := args[0]
-        js.Global().Get("console").Call("log", keyASCII)
         p.keyboard.WriteKeyPress(strconv.Itoa(keyASCII.Int()))
-        time.Sleep(time.Second / time.Duration(1000))
         return nil
     })
 }
 func main () {
-    cpu := InitCPU()
+    var screenBuffer[32][64] bool
+    cpu := InitCPU(&screenBuffer)
     js.Global().Set("loadROM", getROMWrapper(cpu))
     js.Global().Set("initDisplay", initDisplay(cpu))
     js.Global().Set("refreshDisplay", refreshDisplay(cpu))

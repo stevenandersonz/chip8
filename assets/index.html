@@ -30,12 +30,14 @@
               refreshDisplay()
               requestAnimationFrame(updateDisplay)
       }
-      function handleKeypress(self) {
+      function handleMouseDown(self) {
         let key = Number(self.id.split('-')[1])
+        console.log('down')
         onKeypress(key);   
       }
       function handleMouseUp(self) {
         onKeypress(255);   
+        console.log('up')
       }
 
     </script>
@@ -76,21 +78,21 @@
     display: flex;
     flex-wrap: wrap;
   "> 
-      <button id="key-31" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 1 </button>
-      <button id="key-32" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 2 </button>
-      <button id="key-33" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 3 </button>
-      <button id="key-43" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> C </button>
-      <button id="key-34" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 4 </button>
-      <button id="key-35" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 5 </button>
-      <button id="key-36" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 6 </button>
-      <button id="key-44" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> D </button>
-      <button id="key-37" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 7 </button>
-      <button id="key-38" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 8 </button>
-      <button id="key-39" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 9 </button>
-      <button id="key-45" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> E </button>
-      <button id="key-41" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> A </button>
-      <button id="key-30" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 0 </button>
-      <button id="key-42" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> B </button>
-      <button id="key-46" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> F </button>
+      <button id="key-31" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 1 </button>
+      <button id="key-32" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 2 </button>
+      <button id="key-33" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 3 </button>
+      <button id="key-43" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> C </button>
+      <button id="key-34" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 4 </button>
+      <button id="key-35" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 5 </button>
+      <button id="key-36" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 6 </button>
+      <button id="key-44" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> D </button>
+      <button id="key-37" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 7 </button>
+      <button id="key-38" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 8 </button>
+      <button id="key-39" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 9 </button>
+      <button id="key-45" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> E </button>
+      <button id="key-41" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> A </button>
+      <button id="key-30" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> 0 </button>
+      <button id="key-42" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> B </button>
+      <button id="key-46" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)" style="height:20px; width:20px;"> F </button>
   </body>
 </html>

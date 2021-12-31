@@ -10,17 +10,17 @@ type cpu struct {
     display *Display
     keyboard *Keyboard
     stack *Stack
-    lastInstruction string
 }
 func getInstructionChar(instruction uint16) string {
     return fmt.Sprintf("%04X", instruction)
 }
 
 func  InitCPU () *cpu {
+    var screenBuffer[32][64] bool
     p := new(cpu)
     p.m = InitMemory()
     p.registers = InitRegisters()
-    p.display = InitDisplay()
+    p.display = InitDisplay(&screenBuffer)
     p.keyboard = InitKeyboard()
     p.stack = new(Stack)
     go p.registers.RegisterClockLoop()
@@ -39,7 +39,6 @@ func (p *cpu) LoadProgram (program []byte, programSize uint16) {
 func (p *cpu) Cycle () {
     p.registers.IncrementPC()
     opCode := getInstructionChar(p.FetchInstruction())
-    p.lastInstruction = opCode
     p.Execute(opCode)
 }
 

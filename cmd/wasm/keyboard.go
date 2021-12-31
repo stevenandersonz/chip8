@@ -1,7 +1,6 @@
 package main
 import (
     "time"
-    "syscall/js"
 )
 
 type Keyboard struct {
@@ -33,9 +32,7 @@ func isKeyInKeyboard(key string) byte{
 
 
 func (k *Keyboard) WriteKeyPress (key string) {
-    js.Global().Get("console").Call("log", key)
     keyCode := isKeyInKeyboard(key)
-    js.Global().Get("console").Call("log", keyCode)
     k.lastKey = keyCode
 }
 func (k *Keyboard) WaitForKeyPress() byte {
@@ -43,7 +40,7 @@ func (k *Keyboard) WaitForKeyPress() byte {
         if k.lastKey != 0xFF {
             return k.lastKey
         }
-        time.Sleep(time.Second / time.Duration(500))
+        time.Sleep(time.Second / time.Duration(1500))
     }
 }
 

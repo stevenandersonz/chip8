@@ -15,7 +15,10 @@ func check(e error) {
         panic(e)
     }
 }
-
+func timeTrack(start time.Time, name string) {
+    elapsed := time.Since(start)
+    js.Global().Get("console").Call("log", fmt.Sprintf("%s took %s", name, elapsed))
+}
 func openFile (path string) (*[]byte, uint16) {
     rom, err := os.Open(path)
     check(err)
@@ -51,7 +54,7 @@ func getROMWrapper (p *cpu) js.Func {
 
 }
 func RunChip8(p *cpu) {
-    clockSpeed := uint64(500)
+    clockSpeed := uint64(1000)
     for p.registers.GetPC() < 0xFFD {
         p.Cycle()
         time.Sleep(time.Second / time.Duration(clockSpeed))
@@ -80,11 +83,13 @@ func refreshDisplay(p *cpu) js.Func {
                 if p.display.draw {
                     p.display.Print(func (pixel bool, y int,x int){
                             id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                            pixelUI := DOMDocument.GetElementById(id)
-                            if pixel {
-                                js.Value(pixelUI).Set("className","on")
-                            } else {
-                                js.Value(pixelUI).Set("className","off")
+                            pixelUI := js.Value(DOMDocument.GetElementById(id))
+                            pixelUIVal := pixelUI.Get("className").String()
+                            if pixel && pixelUIVal == "off" {
+                               pixelUI.Set("className","on")
+                            } 
+                            if !pixel && pixelUIVal == "on" {
+                                pixelUI.Set("className","off")
                             }
                         })
                             p.display.draw =false
@@ -96,8 +101,6 @@ func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         keyASCII := args[0]
         p.keyboard.WriteKeyPress(strconv.Itoa(keyASCII.Int()))
-        js.Global().Get("console").Call("log", "PRESSED")
-        time.Sleep(time.Second / time.Duration(500))
         return nil
     })
 }

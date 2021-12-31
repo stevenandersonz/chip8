@@ -1,0 +1,13 @@
+.pixel {
+  width: 10px;
+  height: 10px;
+  border: 1px solid black;
+}
+
+.off {
+  background-color: black;
+}
+
+.on {
+  background-color: #39ff14;
+}

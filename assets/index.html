@@ -16,33 +16,55 @@
         document
           .getElementById("chip8ROMUploader")
           .addEventListener("change", function () {
-            console.log("GET");
             let reader = new FileReader();
             reader.onload = (ev) => {
               bytes = new Uint8Array(ev.target.result);
-              loadROM(bytes);
+              let load = loadROM(bytes);
+              initDisplay() 
             };
             reader.readAsArrayBuffer(this.files[0]);
-            // setInterval(getChip8Display, 500)
+           updateDisplay() 
           });
-        
       };
-      function handleKeypress(self) {
-        let key = self.id.split('-')[1]
-        ReadPressKey(key);   
+      function updateDisplay() {
+              refreshDisplay()
+              requestAnimationFrame(updateDisplay)
       }
+      function handleKeypress(self) {
+        let key = Number(self.id.split('-')[1])
+        onKeypress(key);   
+      }
+      function handleMouseUp(self) {
+        onKeypress(255);   
+      }
+
     </script>
+    <style>
+      #chip8Display {
+        width: 768px;
+        height: 384px;
+        background-color: rgb(12, 12, 12);
+        display: flex;
+        flex-wrap: wrap;
+      }
+      #chip8Display div {
+  width: 10px;
+  height: 10px;
+  border: 1px solid black;
+}
+
+.off {
+  background-color: black;
+}
+
+.on {
+  background-color: #39ff14;
+}
+    </style>
   </head>
   <body>
     <h1>Chip 8 Interpreter</h1>
     <section
-      style="
-        width: 640px;
-        height: 320px;
-        background-color: blue;
-        display: flex;
-        flex-wrap: wrap;
-      "
       id="chip8Display"
     ></section>
     <input id="chip8ROMUploader" type="file" name="chip8ROM" />
@@ -54,21 +76,21 @@
     display: flex;
     flex-wrap: wrap;
   "> 
-      <button id="key-1" onclick="handleKeypress(this)" style="height:20px; width:20px;"> 1 </button>
-      <button id="key-2" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 2 </button>
-      <button id="key-3" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 3 </button>
-      <button id="key-C" onclick="handleKeypress(this)"style="height:20px; width:20px;"> C </button>
-      <button id="key-4" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 4 </button>
-      <button id="key-5" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 5 </button>
-      <button id="key-6" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 6 </button>
-      <button id="key-D" onclick="handleKeypress(this)"style="height:20px; width:20px;"> D </button>
-      <button id="key-7" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 7 </button>
-      <button id="key-8" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 8 </button>
-      <button id="key-9" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 9 </button>
-      <button id="key-E" onclick="handleKeypress(this)"style="height:20px; width:20px;"> E </button>
-      <button id="key-A" onclick="handleKeypress(this)"style="height:20px; width:20px;"> A </button>
-      <button id="key-0" onclick="handleKeypress(this)"style="height:20px; width:20px;"> 0 </button>
-      <button id="key-B" onclick="handleKeypress(this)"style="height:20px; width:20px;"> B </button>
-      <button id="key-F" onclick="handleKeypress(this)"style="height:20px; width:20px;"> F </button>
+      <button id="key-31" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 1 </button>
+      <button id="key-32" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 2 </button>
+      <button id="key-33" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 3 </button>
+      <button id="key-43" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> C </button>
+      <button id="key-34" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 4 </button>
+      <button id="key-35" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 5 </button>
+      <button id="key-36" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 6 </button>
+      <button id="key-44" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> D </button>
+      <button id="key-37" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 7 </button>
+      <button id="key-38" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 8 </button>
+      <button id="key-39" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 9 </button>
+      <button id="key-45" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> E </button>
+      <button id="key-41" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> A </button>
+      <button id="key-30" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> 0 </button>
+      <button id="key-42" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> B </button>
+      <button id="key-46" onmouseup="handleMouseUp(this)" onmousedown="handleKeypress(this)" style="height:20px; width:20px;"> F </button>
   </body>
 </html>

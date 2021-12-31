@@ -54,7 +54,7 @@ func getROMWrapper (p *cpu) js.Func {
 
 }
 func RunChip8(p *cpu) {
-    clockSpeed := uint64(1000)
+    clockSpeed := uint64(500)
     for p.registers.GetPC() < 0xFFD {
         p.Cycle()
         time.Sleep(time.Second / time.Duration(clockSpeed))
@@ -100,7 +100,9 @@ func refreshDisplay(p *cpu) js.Func {
 func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         keyASCII := args[0]
+        js.Global().Get("console").Call("log", keyASCII)
         p.keyboard.WriteKeyPress(strconv.Itoa(keyASCII.Int()))
+        time.Sleep(time.Second / time.Duration(1000))
         return nil
     })
 }

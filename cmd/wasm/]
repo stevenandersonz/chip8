@@ -53,8 +53,9 @@ func getROMWrapper (p *cpu) js.Func {
 
 }
 func RunChip8(p *cpu) {
-    clockSpeed := uint64(500)
+    clockSpeed := uint64(700)
     for p.registers.GetPC() < 0xFFD {
+        ConsoleLog("cycle")
         p.Cycle()
         time.Sleep(time.Second / time.Duration(clockSpeed))
     }

@@ -3,6 +3,7 @@ package main
 
 type Display struct {
     screen [32][64]bool
+    screenJS []interface{}
     screenBuffer *[32][64]bool
     draw bool
     rendered bool

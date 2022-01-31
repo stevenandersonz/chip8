@@ -8,7 +8,6 @@ import (
 	"strconv"
 	"syscall/js"
 	"time"
-	"github.com/stevenandersonz/tree"
 )
 func check(e error) {
     if e != nil {
@@ -56,55 +55,10 @@ func getROMWrapper (p *cpu) js.Func {
 func RunChip8(p *cpu) {
     clockSpeed := uint64(500)
     for p.registers.GetPC() < 0xFFD {
-        start := time.Now()
+        ConsoleLog("cycle")
         p.Cycle()
-        timeTrack(start, "cycle") 
         time.Sleep(time.Second / time.Duration(clockSpeed))
     }
-}
-func initDisplay(p *cpu) js.Func {
-    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
-        jsDoc := js.Global().Get("document")
-        DOMDocument := tree.TreeElement(jsDoc)
-        displayUI := DOMDocument.GetElementById("chip8Display")
-        if !p.display.rendered {
-            p.display.Print(func (pixel bool, y int, x int) {
-                id := "id=pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                pixelUI := DOMDocument.CreateElement("div", []string{id, "class=off"})
-                displayUI.AppendChild(pixelUI)
-            })
-            p.display.rendered = true
-        }
-        return nil
-    })
-}
-func refreshDisplay(p *cpu) js.Func {
-                jsDoc := js.Global().Get("document")
-                cache := make(map[string]js.Value)
-    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
-                start:=time.Now()
-                DOMDocument := tree.TreeElement(jsDoc)
-                if p.display.draw {
-                    p.display.Print(func (pixel bool, y int,x int){
-                            id := "pixel-" + strconv.Itoa(y) + "-" + strconv.Itoa(x)
-                            pixelUI, ok := cache[id]
-                            if !ok {
-                                pixelUI = js.Value(DOMDocument.GetElementById(id))
-                                cache[id] = pixelUI
-                            }
-                            pixelUIVal := pixelUI.Get("className").String()
-                            if pixel && pixelUIVal == "off" {
-                               pixelUI.Set("className","on")
-                            } 
-                            if !pixel && pixelUIVal == "on" {
-                                pixelUI.Set("className","off")
-                            }
-                        })
-                            p.display.draw =false
-                }
-                timeTrack(start, "DRAW UI")
-                return nil 
-            })
 }
 func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
@@ -113,13 +67,33 @@ func getKeyPress(p *cpu) js.Func {
         return nil
     })
 }
+func getPixel(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        x:= args[0]
+        y:= args[1]
+        pixel := p.display.screenBuffer[y.Int()][x.Int()]
+        return pixel
+   })
+}
+func getAllPixel(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        screen := make([] interface {},32)
+        for i,row:=range(p.display.screenBuffer){
+            col := make([] interface{},64)
+            copy(col,row[:])
+            screen[i] = col
+        }
+        return screen
+   })
+}
+
 func main () {
     var screenBuffer[32][64] bool
     cpu := InitCPU(&screenBuffer)
     js.Global().Set("loadROM", getROMWrapper(cpu))
-    js.Global().Set("initDisplay", initDisplay(cpu))
-    js.Global().Set("refreshDisplay", refreshDisplay(cpu))
     js.Global().Set("onKeypress", getKeyPress(cpu))
+    js.Global().Set("getPixel", getPixel(cpu))
+    js.Global().Set("getAllPixel", getAllPixel(cpu))
     <- make(chan bool)
 }
 

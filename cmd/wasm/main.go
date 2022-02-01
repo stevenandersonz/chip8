@@ -53,9 +53,25 @@ func getROMWrapper (p *cpu) js.Func {
 
 }
 func RunChip8(p *cpu) {
-    clockSpeed := uint64(500)
+    clockSpeed := uint64(200)
+    doc:= js.Global().Get("document")
+    instructionsList := doc.Call("getElementById", "instructions")
+    gpReg := doc.Call("getElementById", "gp-reg")
+    n := 0
     for p.registers.GetPC() < 0xFFD {
         p.Cycle()
+        if instructionsList.Truthy() {
+            if n == 5 {
+                instructionsList.Set("innerHTML", "")
+                n=0
+            }
+            instruction:= doc.Call("createElement", "li")
+            text:= doc.Call("createTextNode", p.lastOpcode)
+            instruction.Call("append", text)
+            instructionsList.Call("append", instruction)
+            gpReg.Set("innerHTML", fmt.Sprintf("GP: [ %v ]", p.registers.generalPurpose[:]))
+        }
+        n++
         time.Sleep(time.Second / time.Duration(clockSpeed))
     }
 }

@@ -57,6 +57,10 @@ func RunChip8(p *cpu) {
     doc:= js.Global().Get("document")
     instructionsList := doc.Call("getElementById", "instructions")
     gpReg := doc.Call("getElementById", "gp-reg")
+    iReg := doc.Call("getElementById", "i-reg")
+    pcReg := doc.Call("getElementById", "pc-reg")
+    stackPtr := doc.Call("getElementById", "stack-ptr")
+    dtReg := doc.Call("getElementById", "dt-reg")
     n := 0
     for p.registers.GetPC() < 0xFFD {
         p.Cycle()
@@ -70,6 +74,10 @@ func RunChip8(p *cpu) {
             instruction.Call("append", text)
             instructionsList.Call("append", instruction)
             gpReg.Set("innerHTML", fmt.Sprintf("GP: [ %v ]", p.registers.generalPurpose[:]))
+            iReg.Set("innerHTML", fmt.Sprintf("I: [ %v ]", p.registers.GetI()))
+            pcReg.Set("innerHTML", fmt.Sprintf("PC: [ %v ]", p.registers.GetPC()))
+            stackPtr.Set("innerHTML", fmt.Sprintf("Stack Ptr: [ %v ]", p.registers.stackPtr))
+            dtReg.Set("innerHTML", fmt.Sprintf("DT: [ %v ]", p.registers.GetI()))
         }
         n++
         time.Sleep(time.Second / time.Duration(clockSpeed))

@@ -13,6 +13,15 @@
     </script>
     <script>
       window.onload = (event) => {
+        let display = document.getElementById("chip8Display");
+        for (let i = 0; i < 32; i++) {
+          for (let j = 0; j < 64; j++) {
+            let pixelUI = document.createElement("div");
+            pixelUI.id = `pixel-${i}-${j}`;
+            pixelUI.className = "off";
+            display.append(pixelUI);
+          }
+        }
         document
           .getElementById("chip8ROMUploader")
           .addEventListener("change", function () {
@@ -20,15 +29,25 @@
             reader.onload = (ev) => {
               bytes = new Uint8Array(ev.target.result);
               let load = loadROM(bytes);
-              initDisplay();
             };
             reader.readAsArrayBuffer(this.files[0]);
-            updateDisplay();
+            setInterval(updateDisplay, 10);
           });
       };
+
+      let lastUpdate = "";
       function updateDisplay() {
-        refreshDisplay();
-        requestAnimationFrame(updateDisplay);
+        for (let i = 0; i < 32; i++) {
+          for (let j = 0; j < 64; j++) {
+            let pixel = getPixel(j, i);
+            let key = `pixel-${i}-${j}`;
+            let pixelUI = document.getElementById(key);
+            if (pixelUI) {
+              pixelUI.className = pixel ? "on" : "off";
+              lastUpdate = key;
+            }
+          }
+        }
       }
       function handleMouseDown(self) {
         let key = Number(self.id.split("-")[1]);
@@ -65,7 +84,7 @@
         width: 100%;
         height: 50%;
         display: flex;
-        justify-content: space-around;
+        justify-content: flex-start;
       }
       #chip8Keyboard {
         margin-top: 2rem;
@@ -84,132 +103,185 @@
   </head>
   <body>
     <h1>Chip 8 Interpreter Written in go</h1>
-    <section id="chip8Main">
-      <section id="chip8Display"></section>
-      <section
+    <div
+      style="
+        width: 250px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        height: 100vh;
+        border-left: black solid 2px;
+        position: absolute;
+        z-index: 0;
+        top: 0px;
+        right: 0px;
+      "
+    >
+      <h2>Instructions:</h2>
+      <ul
+        id="instructions"
         style="
-          display: flex;
-          flex-direction: column;
-          align-items: baseline;
-          justify-content: center;
+          height: 40%;
+          width: 100%;
+          overflow: hidden;
+          overflow-y: scroll;
+          list-style-type: none;
+        "
+      ></ul>
+      <h2>Registers:</h2>
+      <ul
+        style="
+          width: 100%;
+          height: 40%;
+          overflow: hidden;
+          overflow-y: scroll;
+          list-style-type: none;
         "
       >
-        <input id="chip8ROMUploader" type="file" name="chip8ROM" />
+        <li id="gp-reg">GP: [0 0 0 0 0 0 0 0 0]</li>
+        <li id="i-reg">I: 0</li>
+        <li id="pc-reg">PC: 0</li>
+        <li id="stack-ptr">Stack: 0</li>
+        <li id="dt-reg">DT: 0</li>
+      </ul>
+    </div>
+    <section id="chip8Main">
+      <div id="chip8Display"></div>
+    </section>
 
-        <section id="chip8Keyboard">
-          <button
-            id="key-31"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            1
-          </button>
-          <button
-            id="key-32"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            2
-          </button>
-          <button
-            id="key-33"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            3
-          </button>
-          <button
-            id="key-43"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            C
-          </button>
-          <button
-            id="key-34"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            4
-          </button>
-          <button
-            id="key-35"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            5
-          </button>
-          <button
-            id="key-36"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            6
-          </button>
-          <button
-            id="key-44"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            D
-          </button>
-          <button
-            id="key-37"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            7
-          </button>
-          <button
-            id="key-38"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            8
-          </button>
-          <button
-            id="key-39"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            9
-          </button>
-          <button
-            id="key-45"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            E
-          </button>
-          <button
-            id="key-41"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            A
-          </button>
-          <button
-            id="key-30"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            0
-          </button>
-          <button
-            id="key-42"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            B
-          </button>
-          <button
-            id="key-46"
-            onmouseup="handleMouseUp(this)"
-            onmousedown="handleMouseDown(this)"
-          >
-            F
-          </button>
-        </section>
+    <section
+      style="
+        width: 768px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+      "
+    >
+      <input id="chip8ROMUploader" type="file" name="chip8ROM" />
+      <p>
+        You can get chip8 roms
+        <a
+          href="https://github.com/mir3z/chip8-emu/tree/master/roms"
+          rel="noopener noreferrer"
+          target="_blank"
+          >here</a
+        >
+      </p>
+      <section id="chip8Keyboard">
+        <button
+          id="key-31"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          1
+        </button>
+        <button
+          id="key-32"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          2
+        </button>
+        <button
+          id="key-33"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          3
+        </button>
+        <button
+          id="key-43"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          C
+        </button>
+        <button
+          id="key-34"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          4
+        </button>
+        <button
+          id="key-35"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          5
+        </button>
+        <button
+          id="key-36"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          6
+        </button>
+        <button
+          id="key-44"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          D
+        </button>
+        <button
+          id="key-37"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          7
+        </button>
+        <button
+          id="key-38"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          8
+        </button>
+        <button
+          id="key-39"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          9
+        </button>
+        <button
+          id="key-45"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          E
+        </button>
+        <button
+          id="key-41"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          A
+        </button>
+        <button
+          id="key-30"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          0
+        </button>
+        <button
+          id="key-42"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          B
+        </button>
+        <button
+          id="key-46"
+          onmouseup="handleMouseUp(this)"
+          onmousedown="handleMouseDown(this)"
+        >
+          F
+        </button>
       </section>
     </section>
   </body>

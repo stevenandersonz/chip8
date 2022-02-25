@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"os"
 	"strconv"
@@ -14,10 +13,6 @@ func check(e error) {
         panic(e)
     }
 }
-func timeTrack(start time.Time, name string) {
-    elapsed := time.Since(start)
-    js.Global().Get("console").Call("log", fmt.Sprintf("%s took %s", name, elapsed))
-}
 func openFile (path string) (*[]byte, uint16) {
     rom, err := os.Open(path)
     check(err)
@@ -25,15 +20,6 @@ func openFile (path string) (*[]byte, uint16) {
     programSize,err := rom.Read(program)
     check(err)
     return &program, uint16(programSize)
-}
-func displayOP (rom *[]byte, romSize uint16) {
-    fmt.Println("bytes:", romSize)
-    encodedString := hex.EncodeToString(*rom)
-    fmt.Println("Encoded Hex String: ", encodedString)
-}
-func loadRom (path string){
-    rom, romSize := openFile(path)
-    displayOP(rom, romSize)
 }
 
 func getROMWrapper (p *cpu) js.Func {
@@ -53,7 +39,6 @@ func getROMWrapper (p *cpu) js.Func {
 
 }
 func RunChip8(p *cpu) {
-    clockSpeed := uint64(200)
     doc:= js.Global().Get("document")
     instructionsList := doc.Call("getElementById", "instructions")
     gpReg := doc.Call("getElementById", "gp-reg")
@@ -80,7 +65,7 @@ func RunChip8(p *cpu) {
             dtReg.Set("innerHTML", fmt.Sprintf("DT: [ %v ]", p.registers.GetI()))
         }
         n++
-        time.Sleep(time.Second / time.Duration(clockSpeed))
+        time.Sleep(time.Second / time.Duration(p.GetClockSpeed()))
     }
 }
 func getKeyPress(p *cpu) js.Func {
@@ -98,6 +83,23 @@ func getPixel(p *cpu) js.Func {
         return pixel
    })
 }
+func getClockSpeed(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        return p.GetClockSpeed()
+    })
+}
+func increaseClockSpeed(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        p.IncreaseClockSpeed()
+        return nil 
+    })
+}
+func decreaseClockSpeed(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        p.DecreaseClockSpeed()
+        return nil
+    })
+}
 func getAllPixel(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         screen := make([] interface {},32)
@@ -112,6 +114,9 @@ func main () {
     js.Global().Set("onKeypress", getKeyPress(cpu))
     js.Global().Set("getPixel", getPixel(cpu))
     js.Global().Set("getAllPixel", getAllPixel(cpu))
+    js.Global().Set("getClockSpeed", getClockSpeed(cpu))
+    js.Global().Set("increaseClockSpeed", increaseClockSpeed(cpu))
+    js.Global().Set("decreaseClockSpeed", decreaseClockSpeed(cpu))
     <- make(chan bool)
 }
 

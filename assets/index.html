@@ -1,278 +1,112 @@
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <script src="wasm_exec.js"></script>
-    <script>
-      const go = new Go();
-      WebAssembly.instantiateStreaming(fetch("chip8.wasm"), go.importObject).then((result) => {
-        go.run(result.instance);
-      });
-    </script>
-    <script>
-      window.onload = (event) => {
-        let display = document.getElementById("chip8Display");
-        for (let i = 0; i < 32; i++) {
-          for (let j = 0; j < 64; j++) {
-            let pixelUI = document.createElement("div");
-            pixelUI.id = `pixel-${i}-${j}`;
-            pixelUI.className = "off";
-            display.append(pixelUI);
-          }
-        }
-        document.getElementById("chip8ROMUploader").addEventListener("change", function () {
-          let reader = new FileReader();
-          reader.onload = (ev) => {
-            bytes = new Uint8Array(ev.target.result);
-            let load = loadROM(bytes);
-          };
-          reader.readAsArrayBuffer(this.files[0]);
-          setInterval(updateDisplay, 10);
-        });
-      };
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" type="text/css" href="styles.css" />
+        <script src="wasm_exec.js"></script>
+        <script>
+            const go = new Go();
+            WebAssembly.instantiateStreaming(fetch("chip8.wasm"), go.importObject).then(
+                (result) => {
+                    go.run(result.instance);
+                }
+            );
+        </script>
+        <script>
+            window.onload = (event) => {
+                chip8API.init();
+            };
+        </script>
+    </head>
+    <body>
+        <div>
+            <header>
+                <nav>
+                    <ul>
+                        <li>Chip8 written in go powered by WASM</li>
+                        <li>
+                            <a
+                                href="https://github.com/mir3z/chip8-emu/tree/master/roms"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >ROOMS</a
+                            >
+                        </li>
+                        <li>
+                            <a
+                                href="https://github.com/stevenandersonz/chip8"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                >SOURCE</a
+                            >
+                        </li>
+                    </ul>
+                </nav>
+            </header>
+        </div>
+        <div
+            style="
+                width: 300px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: flex-start;
+                height: 100vh;
+                border-left: black solid 2px;
+                position: absolute;
+                top: 11vh;
+                right: 0px;
+            "
+        >
+            <h2>Instructions:</h2>
+            <ul
+                id="instructions"
+                style="
+                    height: 250px;
+                    width: 100%;
+                    overflow: hidden;
+                    overflow-y: scroll;
+                    list-style-type: none;
+                "
+            ></ul>
+            <h2>Registers:</h2>
+            <ul
+                style="
+                    width: 100%;
+                    height: 100px;
+                    overflow: hidden;
+                    overflow-y: scroll;
+                    list-style-type: none;
+                "
+            >
+                <li id="gp-reg">GP: [0 0 0 0 0 0 0 0 0]</li>
+                <li id="i-reg">I: 0</li>
+                <li id="pc-reg">PC: 0</li>
+                <li id="stack-ptr">Stack: 0</li>
+                <li id="dt-reg">DT: 0</li>
+            </ul>
+            <h2>Clock Rate</h2>
+            <h3 id="clock-rate-display">500</h3>
+            <div id="clock-rate-control" class="clock-rate-btn">
+                <button id="btn-decrease-cr">-</button>
+                <button id="btn-increase-cr">+</button>
+            </div>
+        </div>
+        <section id="chip8Main">
+            <div id="chip8Display"></div>
+        </section>
 
-      let lastUpdate = "";
-      function updateDisplay() {
-        for (let i = 0; i < 32; i++) {
-          for (let j = 0; j < 64; j++) {
-            let pixel = getPixel(j, i);
-            let key = `pixel-${i}-${j}`;
-            let pixelUI = document.getElementById(key);
-            if (pixelUI) {
-              pixelUI.className = pixel ? "on" : "off";
-              lastUpdate = key;
-            }
-          }
-        }
-      }
-      function updateClockRate() {
-        let clockRateSpan = document.getElementById("clock-rate-display");
-        clockRateSpan.innerHTML = getClockSpeed();
-      }
-      function onIncreaseClockRate(self) {
-        increaseClockSpeed();
-        updateClockRate();
-      }
-      function onDecreaseClockRate(self) {
-        decreaseClockSpeed();
-        updateClockRate();
-      }
-      function handleMouseDown(self) {
-        let key = Number(self.id.split("-")[1]);
-        onKeypress(key);
-      }
-      function handleMouseUp(self) {
-        onKeypress(255);
-      }
-    </script>
-    <style>
-      #chip8Display {
-        width: 768px;
-        height: 384px;
-        background-color: rgb(12, 12, 12);
-        display: flex;
-        flex-wrap: wrap;
-      }
-      #chip8Display div {
-        width: 10px;
-        height: 10px;
-        border: 1px solid black;
-      }
-
-      .off {
-        background-color: black;
-      }
-
-      .on {
-        background-color: #39ff14;
-      }
-      #chip8Main {
-        width: 100%;
-        height: 50%;
-        display: flex;
-        justify-content: flex-start;
-      }
-      #chip8Keyboard {
-        margin-top: 2rem;
-        width: 190px;
-        height: 180px;
-        background-color: white;
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-around;
-      }
-      #chip8Keyboard button {
-        height: 40px;
-        width: 40px;
-      }
-      #clock-rate-btn {
-        display: flex;
-        width: 100%;
-        height: 60px;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .clock-rate-btn button {
-        height: 40px;
-        width: 40px;
-      }
-      header {
-        background-color: white;
-        color: black;
-        height: 10vh;
-        border-bottom: solid 1px black;
-        margin-bottom: 2rem;
-      }
-      header a {
-        color: black;
-      }
-      header ul {
-        display: flex;
-        width: 100%;
-        height: 100%;
-        justify-content: space-around;
-        align-items: center;
-        list-style: none;
-      }
-    </style>
-  </head>
-  <body>
-    <div>
-      <header>
-        <nav>
-          <ul>
-            <li>Chip8 written in go</li>
-            <li>
-              <a
-                href="https://github.com/mir3z/chip8-emu/rooms"
-                target="_blank"
-                rel="noopener noreferrer"
-                >ROOMS</a
-              >
-            </li>
-            <li>
-              <a
-                href="https://github.com/stevenandersonz/chip8"
-                target="_blank"
-                rel="noopener noreferrer"
-                >SOURCE</a
-              >
-            </li>
-          </ul>
-        </nav>
-      </header>
-    </div>
-    <div
-      style="
-        width: 300px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: flex-start;
-        height: 100vh;
-        border-left: black solid 2px;
-        position: absolute;
-        top: 11vh;
-        right: 0px;
-      "
-    >
-      <h2>Instructions:</h2>
-      <ul
-        id="instructions"
-        style="
-          height: 250px;
-          width: 100%;
-          overflow: hidden;
-          overflow-y: scroll;
-          list-style-type: none;
-        "
-      ></ul>
-      <h2>Registers:</h2>
-      <ul
-        style="
-          width: 100%;
-          height: 100px;
-          overflow: hidden;
-          overflow-y: scroll;
-          list-style-type: none;
-        "
-      >
-        <li id="gp-reg">GP: [0 0 0 0 0 0 0 0 0]</li>
-        <li id="i-reg">I: 0</li>
-        <li id="pc-reg">PC: 0</li>
-        <li id="stack-ptr">Stack: 0</li>
-        <li id="dt-reg">DT: 0</li>
-      </ul>
-      <h2>Clock Rate</h2>
-      <h3 id="clock-rate-display">500</h3>
-      <div class="clock-rate-btn">
-        <button onclick="onDecreaseClockRate(this)">-</button>
-        <button onclick="onIncreaseClockRate(this)">+</button>
-      </div>
-    </div>
-    <section id="chip8Main">
-      <div id="chip8Display"></div>
-    </section>
-
-    <section
-      style="
-        width: 768px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      "
-    >
-      <input id="chip8ROMUploader" type="file" name="chip8ROM" />
-      <section id="chip8Keyboard">
-        <button id="key-31" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          1
-        </button>
-        <button id="key-32" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          2
-        </button>
-        <button id="key-33" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          3
-        </button>
-        <button id="key-43" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          C
-        </button>
-        <button id="key-34" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          4
-        </button>
-        <button id="key-35" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          5
-        </button>
-        <button id="key-36" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          6
-        </button>
-        <button id="key-44" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          D
-        </button>
-        <button id="key-37" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          7
-        </button>
-        <button id="key-38" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          8
-        </button>
-        <button id="key-39" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          9
-        </button>
-        <button id="key-45" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          E
-        </button>
-        <button id="key-41" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          A
-        </button>
-        <button id="key-30" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          0
-        </button>
-        <button id="key-42" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          B
-        </button>
-        <button id="key-46" onmouseup="handleMouseUp(this)" onmousedown="handleMouseDown(this)">
-          F
-        </button>
-      </section>
-    </section>
-  </body>
+        <section
+            style="
+                width: 768px;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+            "
+        >
+            <input id="chip8ROMUploader" type="file" name="chip8ROM" />
+            <section id="chip8Keyboard"></section>
+        </section>
+    </body>
+    <script src="./index.js" type="text/javascript"></script>
 </html>

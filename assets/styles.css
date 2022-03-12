@@ -1,13 +1,68 @@
-.pixel {
-  width: 10px;
-  height: 10px;
-  border: 1px solid black;
+#chip8Display {
+    width: 768px;
+    height: 384px;
+    background-color: rgb(12, 12, 12);
+    display: flex;
+    flex-wrap: wrap;
+}
+#chip8Display div {
+    width: 10px;
+    height: 10px;
+    border: 1px solid black;
 }
 
 .off {
-  background-color: black;
+    background-color: black;
 }
 
 .on {
-  background-color: #39ff14;
+    background-color: #39ff14;
+}
+#chip8Main {
+    width: 100%;
+    height: 50%;
+    display: flex;
+    justify-content: flex-start;
+}
+#chip8Keyboard {
+    margin-top: 2rem;
+    width: 190px;
+    height: 180px;
+    background-color: white;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+#chip8Keyboard button {
+    height: 40px;
+    width: 40px;
+}
+#clock-rate-btn {
+    display: flex;
+    width: 100%;
+    height: 60px;
+    justify-content: space-between;
+    align-items: center;
+}
+.clock-rate-btn button {
+    height: 40px;
+    width: 40px;
+}
+header {
+    background-color: white;
+    color: black;
+    height: 10vh;
+    border-bottom: solid 1px black;
+    margin-bottom: 2rem;
+}
+header a {
+    color: black;
+}
+header ul {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    justify-content: space-around;
+    align-items: center;
+    list-style: none;
 }

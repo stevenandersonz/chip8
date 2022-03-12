@@ -113,7 +113,6 @@ func main () {
     js.Global().Set("loadROM", getROMWrapper(cpu))
     js.Global().Set("onKeypress", getKeyPress(cpu))
     js.Global().Set("getPixel", getPixel(cpu))
-    js.Global().Set("getAllPixel", getAllPixel(cpu))
     js.Global().Set("getClockSpeed", getClockSpeed(cpu))
     js.Global().Set("increaseClockSpeed", increaseClockSpeed(cpu))
     js.Global().Set("decreaseClockSpeed", decreaseClockSpeed(cpu))

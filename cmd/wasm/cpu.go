@@ -18,7 +18,7 @@ func getInstructionChar(instruction uint16) string {
 }
 
 
-func  InitCPU (screenBuffer *[32][64] bool) *cpu {
+func  InitCPU (screenBuffer *screen) *cpu {
     p := new(cpu)
     p.clockSpeed = 500
     p.m = InitMemory()

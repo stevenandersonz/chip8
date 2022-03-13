@@ -1,11 +1,8 @@
 package main
 
-
 type Display struct {
-    screen [32][64]bool
-    screenJS []interface{}
-    screenBuffer *[32][64]bool
-    draw bool
+    screen screen
+    screenBuffer *screen
     rendered bool
 }
 
@@ -17,9 +14,11 @@ func (d *Display) Clear () {
     }
     d.Sync()
 }
+
 func (d *Display) Sync () {
     copy((*d.screenBuffer)[:], d.screen[:])
 }
+
 func (d *Display) Print (drawPixel func(bool,int, int)) {
     for row := range *d.screenBuffer {
         for col := range (*d.screenBuffer)[row] {
@@ -29,7 +28,7 @@ func (d *Display) Print (drawPixel func(bool,int, int)) {
     }
 }
 
-func InitDisplay (screenBuffer *[32][64]bool) *Display {
+func InitDisplay (screenBuffer *screen) *Display {
     display := new(Display)
     display.screenBuffer = screenBuffer
     display.rendered = false

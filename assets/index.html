@@ -8,13 +8,10 @@
             WebAssembly.instantiateStreaming(fetch("chip8.wasm"), go.importObject).then(
                 (result) => {
                     go.run(result.instance);
+                    const controller = initializeController(chip8());
+                    controller.init();
                 }
             );
-        </script>
-        <script>
-            window.onload = (event) => {
-                chip8API.init();
-            };
         </script>
     </head>
     <body>

@@ -218,8 +218,6 @@ func (p *cpu) Execute(instruction string) {
             nRand := uint8(rand.Intn(255))
             p.registers.SetGP(x,nRand&nn)
         case 0xD:
-            // display draw
-            p.display.draw = true
             drawSprite(x,y,n,p)
         case 0xE:
            if nn == 0x9E {

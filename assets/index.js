@@ -1,4 +1,13 @@
-const chip8API = (function () {
+const initializeController = function (chip8) {
+    const {
+        getPixel,
+        onKeyPress,
+        loadRom,
+        getClockRate,
+        increaseClockRate,
+        decreaseClockRate,
+    } = chip8;
+
     function updateDisplay() {
         for (let i = 0; i < 32; i++) {
             for (let j = 0; j < 64; j++) {
@@ -13,20 +22,20 @@ const chip8API = (function () {
     }
     function handleMouseDown(evt) {
         const key = Number(evt.target.id.split("-")[1]);
-        onKeypress(key);
+        onKeyPress(key);
     }
     function handleMouseUp() {
-        onKeypress(255);
+        onKeyPress(255);
     }
     function setupClockRateControls() {
         const clockRateControl = document.getElementById("clock-rate-control");
         clockRateControl.addEventListener("click", function (evt) {
             const { id } = evt.target;
             console.log(id);
-            if (id === "btn-increase-cr") increaseClockSpeed();
-            if (id === "btn-decrease-cr") decreaseClockSpeed();
+            if (id === "btn-increase-cr") increaseClockRate();
+            if (id === "btn-decrease-cr") decreaseClockRate();
             const clockRateSpan = document.getElementById("clock-rate-display");
-            clockRateSpan.innerHTML = getClockSpeed();
+            clockRateSpan.innerHTML = getClockRate();
         });
     }
     function setupDisplay() {
@@ -43,7 +52,7 @@ const chip8API = (function () {
             const reader = new FileReader();
             reader.onload = (ev) => {
                 bytes = new Uint8Array(ev.target.result);
-                loadROM(bytes);
+                loadRom(bytes);
             };
             reader.readAsArrayBuffer(this.files[0]);
             setInterval(updateDisplay, 10);
@@ -86,4 +95,4 @@ const chip8API = (function () {
             setupClockRateControls();
         },
     };
-})();
+};

@@ -112,6 +112,8 @@ func RunChip8(p *cpu) {
 func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         keyASCII := args[0]
+        ConsoleLog(p.lastOpcode)
+        
         p.keyboard.WriteKeyPress(strconv.Itoa(keyASCII.Int()))
         return nil
     })

@@ -1,11 +1,8 @@
 package main
-import (
-    "time"
-)
 
 type Keyboard struct {
     lastKey byte
-    state string
+    key chan byte
 }
 var keyMap = map[string] byte{ 
     "30": 0,
@@ -30,23 +27,18 @@ func isKeyInKeyboard(key string) byte{
     return keyMap[key]
 }
 
-
 func (k *Keyboard) WriteKeyPress (key string) {
     keyCode := isKeyInKeyboard(key)
     k.lastKey = keyCode
-}
-func (k *Keyboard) WaitForKeyPress() byte {
-    for {
-        if k.lastKey != 0xFF {
-            return k.lastKey
-        }
-        time.Sleep(time.Second / time.Duration(1500))
+    if(keyCode != 0xFF){
+        k.key <- keyCode
     }
 }
 
 func InitKeyboard() *Keyboard {
     k :=  new(Keyboard)
     k.lastKey = 0xFF
+    k.key = make(chan byte)
     return k
 }
 

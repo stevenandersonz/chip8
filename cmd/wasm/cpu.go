@@ -12,6 +12,7 @@ type cpu struct {
     keyboard *Keyboard
     stack *Stack
     lastOpcode string
+    data chan string
 }
 func getInstructionChar(instruction uint16) string {
     return fmt.Sprintf("%04X", instruction)
@@ -56,8 +57,8 @@ func (p *cpu) LoadProgram (program []byte, programSize uint16) {
 func (p *cpu) Cycle () {
     p.registers.IncrementPC()
     opCode := getInstructionChar(p.FetchInstruction())
-    p.Execute(opCode)
     p.lastOpcode = opCode
+    p.Execute(opCode)
 }
 
 

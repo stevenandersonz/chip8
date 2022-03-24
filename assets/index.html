@@ -40,20 +40,7 @@
                 </nav>
             </header>
         </div>
-        <div
-            style="
-                width: 300px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: flex-start;
-                height: 100vh;
-                border-left: black solid 2px;
-                position: absolute;
-                top: 11vh;
-                right: 0px;
-            "
-        >
+        <div class="side-menu">
             <h2>Instructions:</h2>
             <ul
                 id="instructions"
@@ -64,28 +51,27 @@
                     overflow-y: scroll;
                     list-style-type: none;
                 "
-            ></ul>
-            <h2>Registers:</h2>
-            <ul
-                style="
-                    width: 100%;
-                    height: 100px;
-                    overflow: hidden;
-                    overflow-y: scroll;
-                    list-style-type: none;
-                "
             >
-                <li id="gp-reg">GP: [0 0 0 0 0 0 0 0 0]</li>
-                <li id="i-reg">I: 0</li>
-                <li id="pc-reg">PC: 0</li>
-                <li id="stack-ptr">Stack: 0</li>
-                <li id="dt-reg">DT: 0</li>
+                <li id="prev-instruction"></li>
+                <li id="current-instruction"></li>
+                <li id="next-instruction"></li>
             </ul>
-            <h2>Clock Rate</h2>
-            <h3 id="clock-rate-display">500</h3>
-            <div id="clock-rate-control" class="clock-rate-btn">
+            <h2>Registers:</h2>
+            <div id="gp-regs" class="reg"></div>
+            <div id="i-container" class="reg"></div>
+            <div id="pc-container" class="reg"></div>
+            <div id="stack-container" class="reg"></div>
+            <h2>Emulator Controls</h2>
+            <div id="clock-rate-control" class="control-box">
                 <button id="btn-decrease-cr">-</button>
+                <h4 id="clock-rate-display">500</h4>
                 <button id="btn-increase-cr">+</button>
+            </div>
+            <div id="emu-control" class="control-box">
+                <button id="btn-pause">pause</button>
+                <button id="btn-start">start</button>
+                <button id="btn-next">next</button>
+                <button id="btn-prev">previous</button>
             </div>
         </div>
         <section id="chip8Main">

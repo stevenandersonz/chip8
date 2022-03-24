@@ -10,44 +10,44 @@ import (
 // delayTimer -> is active whenever the delay timer is non-zero
 // soundTimer -> is active whenever the sound timer is non-zero
 type Registers struct {
-    programCounter uint16
-    i uint16
-    generalPurpose [16] byte
-    stackPtr uint16
-    delayTimer byte
-    soundTimer byte
-    soundBuffer *bool
+    ProgramCounter uint16 
+    I uint16 
+    GeneralPurpose [16] byte 
+    StackPtr uint16 
+    DelayTimer byte
+    SoundTimer byte
+    SoundBuffer *bool
 }
 
 
 // Get I Register  
 func (r *Registers) GetI () uint16 {
-    return r.i 
+    return r.I 
 }
 // Set I Register  
 func (r *Registers) SetI (value uint16) {
-    r.i = value
+    r.I = value
 }
 // Get Program Counter Register
 func (r *Registers) GetPC () uint16 {
-    return r.programCounter
+    return r.ProgramCounter
 } 
 // Set Program Counter Register
 func (r *Registers) SetPC (address uint16) {
-    r.programCounter = address
+    r.ProgramCounter = address
 }
 // Increment Program Counter Register By 2
 // Each instruccion is 4 bytes long or 2 Memory block
 func (r *Registers) IncrementPC () {
-    r.programCounter += 2
+    r.ProgramCounter += 2
 }
 // Get General Purpose Register at index idx
 func (r *Registers) GetGP(idx uint8) byte {
-    return r.generalPurpose[idx] 
+    return r.GeneralPurpose[idx] 
 }
 // Set General Purpose Register at index idx
 func (r *Registers) SetGP(idx uint8, value byte) {
-    r.generalPurpose[idx] = value 
+    r.GeneralPurpose[idx] = value 
 }
 // Set General Purpose Register at index f
 // Use when carry result must be set
@@ -56,8 +56,8 @@ func (r *Registers) SetVF(carry byte) {
 }
 
 func (r *Registers)UpdateClockTimers () {
-    if r.delayTimer > 0 {
-        r.delayTimer--
+    if r.DelayTimer > 0 {
+        r.DelayTimer--
     }
 }
 
@@ -71,6 +71,6 @@ func (r *Registers) RegisterClockLoop () {
 func InitRegisters () *Registers {
     r := new(Registers)
     r.SetPC(0x198)
-    r.stackPtr = 0
+    r.StackPtr = 0
     return r
 }

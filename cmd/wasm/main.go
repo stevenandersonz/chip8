@@ -2,6 +2,7 @@ package main
 
 type screen [32][64]bool
 type Emulator struct {
+    state string
     cpu *cpu
     screen *screen
 }
@@ -15,6 +16,7 @@ func InitEmulator () *Emulator {
     var screenBuffer screen
     emu.cpu = InitCPU(&screenBuffer)
     emu.screen = &screenBuffer
+    emu.state = "RUNNING"
     return emu
 }
 

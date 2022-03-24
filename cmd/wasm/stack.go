@@ -19,12 +19,12 @@ func (s *Stack) Push(address uint16, stackPtr *uint16)  {
 }
 
 func (r *Registers) IncrementStackPtr() {
-    if r.stackPtr < 15 {
-        r.stackPtr++
+    if r.StackPtr < 15 {
+        r.StackPtr++
     }
 }
 func (r *Registers) DecrementStackPtr() {
-    if r.stackPtr > 0 {
-        r.stackPtr--
+    if r.StackPtr > 0 {
+        r.StackPtr--
     }
 }

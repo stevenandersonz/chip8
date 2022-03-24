@@ -34,7 +34,7 @@ func handleSystemInstruccion (instruccion uint16, p *cpu) {
             case 0x000:
                 break
             case 0x0EE:
-                addr:= p.stack.Pop(&(p.registers.stackPtr))
+                addr:= p.stack.Pop(&(p.registers.StackPtr))
                 p.registers.SetPC(addr)
             case 0x0E0:
                 p.display.Clear()
@@ -101,22 +101,43 @@ func drawSprite (x uint8, y uint8, n uint8, p *cpu) {
         vx := p.registers.GetGP(x)%64
         mask:=byte(0x80)
         for mask > 0 {
-            isBitOn := uint8(sprite & mask) > 0
-            if isBitOn {
-                isPixelOn := p.display.screen[vy][vx]
-                if isPixelOn {
-                    p.display.screen[vy][vx] =false 
+            bit := uint8(sprite & mask) > 0
+            pixel := p.display.screen[vy][vx]
+            if bit == true {
+                if pixel == true {
                     p.registers.SetVF(1)
-                } else {
-                    p.display.screen[vy][vx] = true
-                    p.registers.SetVF(0)
                 }
+                p.display.screen[vy][vx] = !pixel 
             }
             vx = (vx + 1) % 64
             mask = mask >> 1
         }
         vy = (vy + 1) % 32
     }
+    p.display.draw = true
+    p.display.Sync()
+}
+func drawSpriteNotWorking (x uint8, y uint8, n uint8, p *cpu) {
+    i := p.registers.GetI()
+    p.registers.SetVF(0)
+    spriteData := p.m.ReadBlockFromMemory(i, i+uint16(n))
+    var col uint8 = 0
+    vx := uint8(p.registers.GetGP(x))
+    vy := uint8(p.registers.GetGP(y))
+    for row, sprite:=range(spriteData[:n]) {
+        vy = (vy+uint8(row))%32
+        for col=0; col < 8; col++ {
+            vx = (vx+col)%64
+            if (sprite & (0x80 >>col)) != 0 {
+                pixel := p.display.screen[vy][vx]
+                if pixel == true {
+                    p.registers.SetVF(1)
+                }
+                p.display.screen[vy][vx] = !pixel 
+            }            
+        }
+    }
+    p.display.draw = true
     p.display.Sync()
 }
 
@@ -138,7 +159,7 @@ func (p *cpu) Execute(instruction string) {
         case 0x2:
             // Put PC address to the top of the stack
             
-            p.stack.Push(p.registers.GetPC(), &(p.registers.stackPtr))
+            p.stack.Push(p.registers.GetPC(), &(p.registers.StackPtr))
             // PC == nnn
             p.registers.SetPC(nnn-uint16(2))
         case 0x3:
@@ -232,7 +253,7 @@ func (p *cpu) Execute(instruction string) {
             }
         case 0xF:
             if nn == 0x07 {
-                p.registers.SetGP(x, p.registers.delayTimer)
+                p.registers.SetGP(x, p.registers.DelayTimer)
             }
             if nn == 0x0A {
                 //halt execution until key is pressed
@@ -240,7 +261,7 @@ func (p *cpu) Execute(instruction string) {
                 p.registers.SetGP(x, key)
             }
             if nn == 0x15 {
-                p.registers.delayTimer = vx
+                p.registers.DelayTimer = vx
             }
             if nn == 0x18 {
                 break
@@ -258,11 +279,11 @@ func (p *cpu) Execute(instruction string) {
                 p.m.WriteBlockToMemory(start,end, bcd[:])
             }
             if nn == 0x55 {
-                p.m.WriteBlockToMemory(p.registers.GetI(), p.registers.GetI() + uint16(x+1), p.registers.generalPurpose[:x+1])
+                p.m.WriteBlockToMemory(p.registers.GetI(), p.registers.GetI() + uint16(x+1), p.registers.GeneralPurpose[:x+1])
             }
             if nn == 0x65 {
                 block := p.m.ReadBlockFromMemory(p.registers.GetI(), p.registers.GetI()+uint16(x+1))
-                copy(p.registers.generalPurpose[:x+1], block)
+                copy(p.registers.GeneralPurpose[:x+1], block)
             }
 
 

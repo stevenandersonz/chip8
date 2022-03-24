@@ -4,6 +4,7 @@ type Display struct {
     screen screen
     screenBuffer *screen
     rendered bool
+    draw bool
 }
 
 func (d *Display) Clear () {
@@ -13,17 +14,17 @@ func (d *Display) Clear () {
         }
     }
     d.Sync()
+    d.draw = true
 }
+
+//func (d *Display) Sync () {
+//    copy((*d.screenBuffer)[:], d.screen[:])
+//}
 
 func (d *Display) Sync () {
-    copy((*d.screenBuffer)[:], d.screen[:])
-}
-
-func (d *Display) Print (drawPixel func(bool,int, int)) {
-    for row := range *d.screenBuffer {
-        for col := range (*d.screenBuffer)[row] {
-            pixel := (*d.screenBuffer)[row][col]
-            drawPixel(pixel,row,col)
+    for rowIdx:=0; rowIdx<32; rowIdx++ {
+        for colIdx:=0; colIdx<64; colIdx++ {
+            d.screenBuffer[rowIdx][colIdx] = d.screen[rowIdx][colIdx]
         }
     }
 }

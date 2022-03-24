@@ -1,6 +1,7 @@
 package main
 import (
     "syscall/js"
+    "encoding/json"
     "fmt"
     "os"
     "bytes"
@@ -8,9 +9,9 @@ import (
     "time"
 )
 
-func ConsoleLog (log string) {
+func ConsoleLog (log interface {} ) {
     console := js.Global().Get("console")
-    console.Call("log", fmt.Sprintf(log))
+    console.Call("log", fmt.Sprintf("%v", log))
 }
 
 type API struct {
@@ -53,6 +54,13 @@ func getPixel(display *screen) js.Func {
         return pixel
     })
 }
+func shouldDraw(p *cpu) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        draw := p.display.draw
+        p.display.draw = false
+        return draw 
+    })
+}
 func openFile (path string) (*[]byte, uint16) {
     rom, err := os.Open(path)
     check(err)
@@ -63,7 +71,7 @@ func openFile (path string) (*[]byte, uint16) {
 }
 
 
-func getROMWrapper (p *cpu) js.Func {
+func getROMWrapper (emu *Emulator) js.Func {
     getROMFunc := js.FuncOf(func(this js.Value, args []js.Value) interface{} {
         array := args[0]
 		buffer := make([]uint8, array.Get("byteLength").Int())
@@ -71,49 +79,25 @@ func getROMWrapper (p *cpu) js.Func {
 		reader:= bytes.NewReader(buffer)
         programSize,err  := reader.Read(buffer)
         check(err)
-		p.LoadProgram([]byte(buffer), uint16(programSize))
-        go RunChip8(p)
+		emu.cpu.LoadProgram([]byte(buffer), uint16(programSize))
+        go RunChip8(emu)
         return true
     })
 
     return getROMFunc
 
 }
-func RunChip8(p *cpu) {
-    doc:= js.Global().Get("document")
-    instructionsList := doc.Call("getElementById", "instructions")
-    gpReg := doc.Call("getElementById", "gp-reg")
-    iReg := doc.Call("getElementById", "i-reg")
-    pcReg := doc.Call("getElementById", "pc-reg")
-    stackPtr := doc.Call("getElementById", "stack-ptr")
-    dtReg := doc.Call("getElementById", "dt-reg")
-    n := 0
-    for p.registers.GetPC() < 0xFFD {
-        p.Cycle()
-        if instructionsList.Truthy() {
-            if n == 5 {
-                instructionsList.Set("innerHTML", "")
-                n=0
-            }
-            instruction:= doc.Call("createElement", "li")
-            text:= doc.Call("createTextNode", p.lastOpcode)
-            instruction.Call("append", text)
-            instructionsList.Call("append", instruction)
-            gpReg.Set("innerHTML", fmt.Sprintf("GP: [ %v ]", p.registers.generalPurpose[:]))
-            iReg.Set("innerHTML", fmt.Sprintf("I: [ %v ]", p.registers.GetI()))
-            pcReg.Set("innerHTML", fmt.Sprintf("PC: [ %v ]", p.registers.GetPC()))
-            stackPtr.Set("innerHTML", fmt.Sprintf("Stack Ptr: [ %v ]", p.registers.stackPtr))
-            dtReg.Set("innerHTML", fmt.Sprintf("DT: [ %v ]", p.registers.GetI()))
+func RunChip8(emu *Emulator) {
+    for emu.cpu.registers.GetPC() < 0xFFD {
+        if(emu.state != "PAUSED"){
+            emu.cpu.Cycle()
         }
-        n++
-        time.Sleep(time.Second / time.Duration(p.GetClockSpeed()))
+        time.Sleep(time.Second / time.Duration(emu.cpu.GetClockSpeed()))
     }
 }
 func getKeyPress(p *cpu) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
         keyASCII := args[0]
-        ConsoleLog(p.lastOpcode)
-        
         p.keyboard.WriteKeyPress(strconv.Itoa(keyASCII.Int()))
         return nil
     })
@@ -135,21 +119,54 @@ func decreaseClockSpeed(p *cpu) js.Func {
         return nil
     })
 }
-func getAllPixel(p *cpu) js.Func {
+func getAllPixel(pixels *screen) js.Func {
     return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
-        screen := make([] interface {},32)
-        return screen
+        strPixels, err := json.Marshal(pixels) 
+        check(err)
+        return string(strPixels)
    })
 }
 
+func setEmulatorState(emu *Emulator) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        newState := args[0].String()
+        emu.state = newState
+        return nil
+   })
+}
+
+func getCPUState (p *cpu) map[string]interface{} {
+        registers, err := json.Marshal(p.registers)
+        check(err)
+        instruction := GetInstructionChar(p.FetchInstruction())
+        state := make(map[string]interface{})
+        state["registers"] = string(registers)
+        state["instruction"] = instruction
+        return state
+}
+func executeNextInstruction(emu *Emulator) js.Func {
+    return js.FuncOf(func (this js.Value, args []js.Value) interface {} {
+        stateT0 := getCPUState(emu.cpu)
+        emu.cpu.Cycle()
+        stateT1 := getCPUState(emu.cpu)
+        state := make(map[string]interface{})
+        state["state0"] = stateT0
+        state["state1"] = stateT1
+        return state
+   })
+}
 func InitC8API (emu *Emulator) {
     api := NewAPI("chip8")
     api.Add("getPixel",getPixel(emu.screen))
+    api.Add("getScreen",getAllPixel(emu.screen))
+    api.Add("shouldDraw",shouldDraw(emu.cpu))
     api.Add("onKeyPress",getKeyPress(emu.cpu))
     api.Add("getClockRate",getClockSpeed(emu.cpu))
     api.Add("increaseClockRate",increaseClockSpeed(emu.cpu))
+    api.Add("nextInstruction",executeNextInstruction(emu))
     api.Add("decreaseClockRate",decreaseClockSpeed(emu.cpu))
-    api.Add("loadRom",getROMWrapper(emu.cpu))
+    api.Add("loadRom",getROMWrapper(emu))
+    api.Add("setEmulatorState",setEmulatorState(emu))
     api.Publish()
 }
 

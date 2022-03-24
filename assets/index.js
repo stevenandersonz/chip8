@@ -6,19 +6,27 @@ const initializeController = function (chip8) {
         getClockRate,
         increaseClockRate,
         decreaseClockRate,
+        shouldDraw,
+        setEmulatorState,
+        nextInstruction,
+        getScreen,
     } = chip8;
 
     function updateDisplay() {
-        for (let i = 0; i < 32; i++) {
-            for (let j = 0; j < 64; j++) {
-                const pixel = getPixel(j, i);
-                const key = `pixel-${i}-${j}`;
-                const pixelUI = document.getElementById(key);
-                if (pixelUI) {
-                    pixelUI.className = pixel ? "on" : "off";
+        const pixels = JSON.parse(getScreen());
+        if (shouldDraw()) {
+            for (let i = 0; i < 32; i++) {
+                for (let j = 0; j < 64; j++) {
+                    const pixel = pixels[i][j];
+                    const key = `pixel-${i}-${j}`;
+                    const pixelUI = document.getElementById(key);
+                    if (pixelUI) {
+                        pixelUI.className = pixel ? "on" : "off";
+                    }
                 }
             }
         }
+        requestAnimationFrame(updateDisplay);
     }
     function handleMouseDown(evt) {
         const key = Number(evt.target.id.split("-")[1]);
@@ -38,6 +46,68 @@ const initializeController = function (chip8) {
             clockRateSpan.innerHTML = getClockRate();
         });
     }
+    function setupEmuControls() {
+        const emuControl = document.getElementById("emu-control");
+        emuControl.addEventListener("click", function (evt) {
+            const { id } = evt.target;
+            console.log(id);
+            if (id === "btn-pause") setEmulatorState("PAUSED");
+            if (id === "btn-start") setEmulatorState("RUNNING");
+            if (id === "btn-next") {
+                const prevInstruction = document.getElementById("prev-instruction");
+                const currentInstruction = document.getElementById("current-instruction");
+                const nextInstructionUI = document.getElementById("next-instruction");
+                const state = nextInstruction();
+                const registers = JSON.parse(state.state0.registers);
+                prevInstruction.innerText = currentInstruction.innerText;
+                currentInstruction.innerText = state.state0.instruction;
+                nextInstructionUI.innerText = state.state1.instruction;
+                for (let i = 0; i < 15; i++) {
+                    const gpReg = document.getElementById(`v${i}`);
+                    gpReg.value = registers.GeneralPurpose[i];
+                }
+                const iReg = document.getElementById(`i-reg`);
+                iReg.value = registers.I;
+                const pc = document.getElementById(`pc-reg`);
+                pc.value = registers.ProgramCounter;
+                const stackPtr = document.getElementById(`stack-reg`);
+                stackPtr.value = registers.StackPtr;
+            }
+        });
+    }
+    function createRegisterInput(container, id, text) {
+        const label = document.createElement("label");
+        const input = document.createElement("input");
+        const textNode = document.createTextNode(text);
+        input.id = id;
+        input.disabled = true;
+        label.for = id;
+        label.appendChild(textNode);
+        container.appendChild(label);
+        container.appendChild(input);
+    }
+    function setupRegistersControls() {
+        const gpRegs = document.getElementById("gp-regs");
+        //set vx regs
+        for (let i = 0; i < 16; i++) {
+            const div = document.createElement("div");
+            div.className = "reg";
+            const label = document.createElement("label");
+            const reg = document.createElement("input");
+            const id = `v${i}`;
+            const text = document.createTextNode(id);
+            reg.id = id;
+            reg.disabled = true;
+            label.for = id;
+            label.appendChild(text);
+            div.appendChild(label);
+            div.appendChild(reg);
+            gpRegs.appendChild(div);
+        }
+        createRegisterInput(document.getElementById("i-container"), "i-reg", "I");
+        createRegisterInput(document.getElementById("pc-container"), "pc-reg", "PC");
+        createRegisterInput(document.getElementById("stack-container"), "stack-reg", "Stack Ptr");
+    }
     function setupDisplay() {
         const display = document.getElementById("chip8Display");
         for (let i = 0; i < 32; i++) {
@@ -55,7 +125,7 @@ const initializeController = function (chip8) {
                 loadRom(bytes);
             };
             reader.readAsArrayBuffer(this.files[0]);
-            setInterval(updateDisplay, 10);
+            requestAnimationFrame(updateDisplay);
         });
     }
     function setupKeyboard() {
@@ -93,6 +163,8 @@ const initializeController = function (chip8) {
             setupDisplay();
             setupKeyboard();
             setupClockRateControls();
+            setupEmuControls();
+            setupRegistersControls();
         },
     };
 };

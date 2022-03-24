@@ -1,4 +1,5 @@
 package main
+import "time"
 
 type Keyboard struct {
     lastKey byte
@@ -28,10 +29,19 @@ func isKeyInKeyboard(key string) byte{
 }
 
 func (k *Keyboard) WriteKeyPress (key string) {
+    ConsoleLog(key)
     keyCode := isKeyInKeyboard(key)
     k.lastKey = keyCode
-    if(keyCode != 0xFF){
-        k.key <- keyCode
+}
+
+func (k *Keyboard) WaitForKey() byte {
+    for {
+        if(k.lastKey != 0xFF){
+            key:= k.lastKey
+            k.lastKey = byte(0xFF)
+            return key
+        }
+        time.Sleep(time.Second / time.Duration(1000))
     }
 }
 

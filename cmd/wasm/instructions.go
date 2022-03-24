@@ -257,7 +257,7 @@ func (p *cpu) Execute(instruction string) {
             }
             if nn == 0x0A {
                 //halt execution until key is pressed
-                key:=  <- p.keyboard.key
+                key := p.keyboard.WaitForKey()
                 p.registers.SetGP(x, key)
             }
             if nn == 0x15 {

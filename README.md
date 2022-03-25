@@ -1,5 +1,9 @@
 # chip8
-![Chip8 demo](https://vimeo.com/692122732)
+
+
+https://user-images.githubusercontent.com/34435120/160062662-10cb32a6-63f5-4b8f-b787-ce2af7ddace7.mp4
+
+
 
 chip8 interpreter written in go with debugger
 

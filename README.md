@@ -5,7 +5,7 @@ https://user-images.githubusercontent.com/34435120/160062662-10cb32a6-63f5-4b8f-
 
 
 
-chip8 interpreter written in go with debugger
+chip8 interpreter written in go and exported to the browser using wasm, with a simple debugger to display changes in registers.
 
 # Setup
  1. git clone 
